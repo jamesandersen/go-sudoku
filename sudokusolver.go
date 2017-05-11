@@ -1,21 +1,5 @@
 /*
 Package go-sudoku implements a simple library for solving sudoku puzzles.
-
-The syntax of the regular expressions accepted is:
-
-    regexp:
-        concatenation { '|' concatenation }
-    concatenation:
-        { closure }
-    closure:
-        term [ '*' | '+' | '?' ]
-    term:
-        '^'
-        '$'
-        '.'
-        character
-        '[' [ '^' ] character-ranges ']'
-        '(' regexp ')'
 */
 package gosudoku
 
@@ -31,10 +15,10 @@ const (
 )
 
 const (
-	// STANDARD Each block, row and column should contain digits 1-9
+	// Row labels
 	ROWS = "ABCDEFGHI"
 
-	// DIAGONAL Diagonals should also contains digits 1-9
+	// Column labels
 	COLS = "123456789"
 )
 
