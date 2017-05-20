@@ -25,3 +25,7 @@ func TestDiagonalSudokuBoardInit(t *testing.T) {
 		}
 	}
 }
+
+func TestCallCGO(t *testing.T) {
+	callTest()
+}

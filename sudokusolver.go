@@ -3,6 +3,15 @@ Package go-sudoku implements a simple library for solving sudoku puzzles.
 */
 package gosudoku
 
+/*
+#cgo CPPFLAGS: -I/Users/jandersen/anaconda3/envs/opencvenv/include -I/Users/jandersen/anaconda3/envs/opencvenv/include/opencv2
+#cgo CXXFLAGS: --std=c++1z -stdlib=libc++
+#cgo darwin LDFLAGS: -L/usr/local/Cellar/opencv3/3.2.0/lib -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_ml -lopencv_objdetect -lopencv_photo
+#include <stdlib.h>
+#include "sudoku_parser.h"
+*/
+import "C"
+
 // SudokuMode represents a variant of sudoku
 type SudokuMode int
 
@@ -80,4 +89,9 @@ func cross(a string, b string) []string {
 	}
 
 	return values
+}
+
+func callTest() {
+	theFilename := "Trip-08-48-33.h264"
+	C.test2(C.CString(theFilename))
 }
