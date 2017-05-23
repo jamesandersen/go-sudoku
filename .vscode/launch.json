@@ -11,7 +11,7 @@
             "host": "127.0.0.1",
             "program": "${fileDirname}",
             "env": {},
-            "args": [],
+            "args": ["-filename=samples/800wi.png"],
             "showLog": true
         },
         {

@@ -1,7 +1,7 @@
 /*
 Package go-sudoku implements a simple library for solving sudoku puzzles.
 */
-package gosudoku
+package sudokusolver
 
 /*
 #cgo CPPFLAGS: -I/Users/jandersen/anaconda3/envs/opencvenv/include -I/Users/jandersen/anaconda3/envs/opencvenv/include/opencv2
@@ -13,10 +13,11 @@ package gosudoku
 import "C"
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"path"
 )
 
 // SudokuMode represents a variant of sudoku
@@ -98,28 +99,29 @@ func cross(a string, b string) []string {
 	return values
 }
 
-func parseSudoku(filename string) string {
+// Parse a Sudoku puzzle using a file path to a Sudoku image
+func ParseSudokuFromFile(filename string) string {
+	if !path.IsAbs(filename) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(fmt.Sprintf("Getwd failed: %s", err))
+		}
+		filename = path.Clean(path.Join(cwd, filename))
+	}
+
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return ParseSudokuFromByteArray(data)
+}
 
+// Parse a Sudoku puzzle from an image byte array
+func ParseSudokuFromByteArray(data []byte) string {
 	p := C.CBytes(data)
 	defer C.free(p)
 
 	parsed := C.ParseSudoku((*C.char)(p), C.int(len(data)), true)
 
 	return C.GoString(parsed)
-}
-
-func main() {
-	var filename string
-
-	flag.StringVar(&filename, "filename", "", "Sudoku puzzle image")
-
-	flag.Parse()
-
-	parsed := parseSudoku(filename)
-
-	fmt.Println("Parsed sudoku: " + parsed)
 }

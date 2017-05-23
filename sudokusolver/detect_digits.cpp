@@ -217,10 +217,13 @@ namespace Sudoku {
         imshow("bounds: "  + filename, digitBounds);
     }
 
-    vector<Rect> FindDigitRects(const Mat& src, Mat& cleaned) {
+    vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned) {
         // Check if image is loaded fine
-        if(!src.data)
+        if(!raw.data)
             cerr << "Problem loading image!!!" << endl;
+
+        Mat src;
+        raw.copyTo(src);
 
         // make sure image is a reasonable size
         if(src.rows > MAX_PUZZLE_SIZE || src.cols > MAX_PUZZLE_SIZE) {

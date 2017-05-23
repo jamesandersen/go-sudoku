@@ -1,4 +1,4 @@
-package gosudoku
+package sudokusolver
 
 import (
 	"fmt"
@@ -30,10 +30,10 @@ func TestDiagonalSudokuBoardInit(t *testing.T) {
 	}
 }
 
-func TestParseSudoku(t *testing.T) {
+func TestParseSudokuFromFile(t *testing.T) {
 	_, filename, _, _ := runtime.Caller(0)
 	fmt.Println("Current test filename: " + filename)
-	filename = "samples/800wi.png"
-	sudoku_string := parseSudoku(filename)
-	fmt.Println("Parsed sudoku: " + sudoku_string)
+	filename = "../samples/800wi.png"
+	sudokuString := ParseSudokuFromFile(filename)
+	fmt.Println("Parsed sudoku: " + sudokuString)
 }
