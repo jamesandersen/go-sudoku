@@ -7,6 +7,6 @@ using namespace std;
 
 int internalTest();
 void internalTest2(char * filename);
-string internalParseSudoku(char * encodedImageData, bool saveOutput);
+string internalParseSudoku(const char * encodedImageData, int length, bool saveOutput);
 
 #endif

@@ -13,10 +13,9 @@ using namespace cv;
 
 const int EXPORT_DIGIT_SIZE = 28;
 
-string internalParseSudoku(char * encImgData, bool saveOutput) {
-
-    int zi = sizeof(encImgData);
-    std::vector<char> encodedImageData(encImgData, encImgData + zi);
+string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
+    cout << "Calling internalParseSudoku" << endl;
+    std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
     Mat cleanedBoard;

@@ -12,6 +12,13 @@ package gosudoku
 */
 import "C"
 
+import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"log"
+)
+
 // SudokuMode represents a variant of sudoku
 type SudokuMode int
 
@@ -91,7 +98,28 @@ func cross(a string, b string) []string {
 	return values
 }
 
-func callTest() {
-	theFilename := "Trip-08-48-33.h264"
-	C.test2(C.CString(theFilename))
+func parseSudoku(filename string) string {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p := C.CBytes(data)
+	defer C.free(p)
+
+	parsed := C.ParseSudoku((*C.char)(p), C.int(len(data)), true)
+
+	return C.GoString(parsed)
+}
+
+func main() {
+	var filename string
+
+	flag.StringVar(&filename, "filename", "", "Sudoku puzzle image")
+
+	flag.Parse()
+
+	parsed := parseSudoku(filename)
+
+	fmt.Println("Parsed sudoku: " + parsed)
 }

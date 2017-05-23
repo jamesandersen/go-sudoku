@@ -15,7 +15,7 @@ void test2(char * filename) {
     internalTest2(filename);
 }
 
-const char * ParseSudoku(char * encodedImageData, bool saveOutput) {
+const char * ParseSudoku(const char * encodedImageData, int length, bool saveOutput) {
     
-    return internalParseSudoku(encodedImageData, saveOutput).c_str();
+    return internalParseSudoku(encodedImageData, length, saveOutput).c_str();
 }

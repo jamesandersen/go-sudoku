@@ -1,6 +1,10 @@
 package gosudoku
 
-import "testing"
+import (
+	"fmt"
+	"runtime"
+	"testing"
+)
 
 func TestStandardSudokuBoardInit(t *testing.T) {
 	if testing.Short() {
@@ -26,6 +30,10 @@ func TestDiagonalSudokuBoardInit(t *testing.T) {
 	}
 }
 
-func TestCallCGO(t *testing.T) {
-	callTest()
+func TestParseSudoku(t *testing.T) {
+	_, filename, _, _ := runtime.Caller(0)
+	fmt.Println("Current test filename: " + filename)
+	filename = "samples/800wi.png"
+	sudoku_string := parseSudoku(filename)
+	fmt.Println("Parsed sudoku: " + sudoku_string)
 }

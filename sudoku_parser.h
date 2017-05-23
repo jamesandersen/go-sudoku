@@ -10,7 +10,7 @@ extern "C" {
 #endif
 	int test();
     void test2(char * filename);
-    const char* ParseSudoku(char * encodedImageData, bool saveOutput);
+    const char* ParseSudoku(const char * encodedImageData, int length, bool saveOutput);
 
 #ifdef __cplusplus
 }
