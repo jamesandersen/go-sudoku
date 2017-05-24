@@ -1,9 +1,12 @@
 
 #include <iostream>
+#include <cstdlib>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include "opencv2/objdetect.hpp"
+#include <opencv2/objdetect.hpp>
 #include <opencv2/ml.hpp>
+
+#include "sudoku_parser.hpp"
 
 
 using namespace cv::ml;
@@ -16,6 +19,16 @@ namespace Sudoku {
     int SZ = 28;
 
     float affineFlags = WARP_INVERSE_MAP|INTER_LINEAR;
+    
+
+    string getEnvVar(string const& key)
+    {
+        char const* val = getenv(key.c_str()); 
+        cout << "Looking for " << key.c_str() << endl;
+        cout << "Found " << string(val) << endl;
+        
+        return val == NULL ? std::string() : std::string(val);
+    }
 
     Mat deskew(Mat& img){
         Moments m = moments(img);
@@ -30,6 +43,10 @@ namespace Sudoku {
         return imgOut;
     } 
 
+    /**
+    * Load image used to train SVM and extract digit image and label
+    * The training image file is expected to consist of 9 rows of digit images with each digit being a square pixel range of size SZ
+    */
     void loadTrainTestLabel(string &pathName, vector<Mat> &trainCells, vector<Mat> &testCells,vector<int> &trainLabels, vector<int> &testLabels){
 
         Mat img = imread(pathName, CV_LOAD_IMAGE_GRAYSCALE);
@@ -59,6 +76,9 @@ namespace Sudoku {
         cout << "Image Count : " << ImgCount << endl;
     }
 
+    /**
+    * Deskew digit images
+    */
     void CreateDeskewedTrainTest(vector<Mat> &deskewedTrainCells,vector<Mat> &deskewedTestCells, vector<Mat> &trainCells, vector<Mat> &testCells){
         
 
@@ -88,6 +108,10 @@ namespace Sudoku {
                     0,//gammal correction,
                     64,//nlevels=64
                     1);
+    
+    /**
+    * Calculate HOGDescriptor vector for each training/test digit image
+    */
     void CreateTrainTestHOG(vector<vector<float> > &trainHOG, vector<vector<float> > &testHOG, vector<Mat> &deskewedtrainCells, vector<Mat> &deskewedtestCells){
 
         // set the descriptor position to the middle of the image
@@ -147,8 +171,7 @@ namespace Sudoku {
         svm->setType(SVM::C_SVC);
         Ptr<TrainData> td = TrainData::create(trainMat, ROW_SAMPLE, trainLabels);
         svm->train(td);
-        //svm->trainAuto(td);
-        svm->save("model4.yml");
+        svm->save(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
         svm->predict(testMat, testResponse);
         getSVMParams(svm);
     }
@@ -204,14 +227,16 @@ namespace Sudoku {
         //return 0;
     }
 
+    /**
+    * Use trained SVM to predict digit from Mat
+    */
     int IdentifyDigit(Mat &digitMat) {
 
         vector<float> descriptors;
         vector<Point> positions;
 
         // load pre-trained SVM
-        Ptr<SVM> svm;
-        svm = SVM::load<SVM>("model4.yml");
+        Ptr<SVM> svm = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
 
         // Get HOG descriptor
         hog.compute(digitMat, descriptors, Size(), Size(), positions);

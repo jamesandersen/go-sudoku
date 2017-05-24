@@ -4,16 +4,10 @@
 #include <string>
 #include <iostream>
 
-// this file has to wrap the C++ calls 
-// It is the implemenation of the external C API
+// Provide implemenation of the external C API
+// this file may wrap the C++ calls but cannot include C++ types such as vector 
 
-int test() {
-    return internalTest();
-}
-
-void test2(char * filename) {
-    internalTest2(filename);
-}
+const char *SVM_MODEL_VAR = SVM_MODEL_ENV_VAR_NAME;
 
 const char * ParseSudoku(const char * encodedImageData, int length, bool saveOutput) {
     

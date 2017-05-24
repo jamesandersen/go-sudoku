@@ -1,5 +1,6 @@
 #include "detect_digits.hpp"
 #include "identify_digits.hpp"
+#include "sudoku_parser.hpp"
 
 #include <string>
 #include <iostream>
@@ -11,10 +12,10 @@ using namespace Sudoku;
 using namespace std;
 using namespace cv;
 
+const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
 const int EXPORT_DIGIT_SIZE = 28;
 
 string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
-    cout << "Calling internalParseSudoku" << endl;
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
@@ -84,12 +85,6 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
     }
     
     return puzzle.substr(0, puzzle.length() - 1);
-}
-
-int internalTest() { return 1; }
-
-void internalTest2(char * filename) {
-    cout << "Called by GOLANG!" << endl;
 }
 
 /*

@@ -9,13 +9,26 @@ using LineTestFn = std::function<bool(Rect&, Mat&)>;
 using ExpandRectFn = std::function<Rect(Rect&, Mat&)>;
 
 namespace Sudoku {
+
+    // Expand rects around digit contours by this amount
     const int DIGIT_PADDING = 3;
+
+    // Ignore any contour rect smaller than this on any side
     const int MIN_DIGIT_PIXELS = 15;
 
+    // Scale up puzzle images smaller than this
     const int MIN_PUZZLE_SIZE = 250;
+
+    // Scale down puzzle images larger than this
     const int MAX_PUZZLE_SIZE = 800;
+
+    // Resize digits to this size when exporting to train SVM
     const int EXPORT_DIGIT_SIZE = 28;
 
+    /**
+    * Detect numeric digits in a sudoku grid in img Mat and return Rect instances where they are found
+    */
+    
     vector<Rect> findDigits(const Mat& img) {
         vector<Rect> digits;
         Rect imgRect = Rect(0, 0, img.cols, img.rows);
@@ -55,7 +68,10 @@ namespace Sudoku {
         return digits;
     }
 
-    void extract_lines(const Mat& img, Mat& dst, bool horizontal) {
+    /**
+    * Detect horizontal/vertical lines of a sudoku grid in img Mat and copy expanded lines to dst Mat
+    */
+    void extractLines(const Mat& img, Mat& dst, bool horizontal) {
         // Clone the source image
         Mat clone = img.clone();
 
@@ -129,94 +145,9 @@ namespace Sudoku {
         return true;
     }
 
-    void extractDigits(char* file) {
-        // Load the image
-        string filename = string(file);
-        Mat src = imread(filename);
-        // Check if image is loaded fine
-        if(!src.data)
-            cerr << "Problem loading image!!!" << endl;
-        // Show source image
-        cout << "Loaded " + filename << endl;
-
-        // make sure image is a reasonable size
-        if(src.rows > MAX_PUZZLE_SIZE || src.cols > MAX_PUZZLE_SIZE) {
-            resize(src, src, Size(src.cols / 2, src.rows / 2), 0, 0, CV_INTER_AREA);
-        } else if (src.rows < MIN_PUZZLE_SIZE || src.cols < MIN_PUZZLE_SIZE) {
-            resize(src, src, Size(src.cols * 2, src.rows * 2), 0, 0, CV_INTER_CUBIC);
-        }
-
-        //imshow("src: " + filename, src);
-        // Transform source image to gray if it is not
-        Mat gray;
-        if (src.channels() == 3)
-        {
-            cvtColor(src, gray, CV_BGR2GRAY);
-        }
-        else
-        {
-            gray = src;
-        }
-        
-        // Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
-        Mat bw;
-        adaptiveThreshold(~gray, bw, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 11, -2);
-
-        
-
-        Mat lines = Mat::zeros( bw.size(), bw.type() );
-        extract_lines(bw, lines, true);
-        extract_lines(bw, lines, false);
-        
-        //imshow("lines: " + filename, lines);
-
-        // subtract grid lines from the black/white image
-        // so they don't interfere with digit detection
-        Mat clean = bw - lines;
-        blur(clean, clean, Size(1, 1));
-
-        // find digits
-        vector<Rect> digits = findDigits(clean);
-
-        // despeckle
-        //fastNlMeansDenoising(clean, clean, 50.0, 5, clean.cols / 10);
-
-        Mat digitBounds = clean.clone();
-        cvtColor( digitBounds, digitBounds, COLOR_GRAY2BGR );
-
-        if (digits.size() > 0) {
-            // get the bounding box of all digits
-            Rect allDigits = digits[0];
-            for( size_t i = 0; i< digits.size(); i++ ) { allDigits |= digits[i]; }
-
-            double cellWidth = allDigits.width / 9.0;
-            double cellHeight = allDigits.height / 9.0;
-
-            for( size_t i = 0; i< digits.size(); i++ )
-            {
-                Point center = (digits[i].br() + digits[i].tl())*0.5;
-                int row = int(floor((center.y - allDigits.y) / cellHeight));
-                char rowChar = "ABCDEFGHI"[row];
-                int col = int(floor((center.x - allDigits.x) / cellWidth));
-                // draw random colored rect
-                Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-                rectangle( digitBounds, digits[i], color, 1, 8, 0 );
-
-                // save the digit
-                Mat digit = Mat(clean, digits[i]);
-                resize(digit, digit, Size(EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE), 0, 0, CV_INTER_AREA);
-                // despeckle
-                fastNlMeansDenoising(digit, digit, 50.0, 5, clean.cols / 10);
-                replace(filename, "samples/", "");
-                string outFile = "digits/" + string(1, rowChar) + to_string(col) + "_" + filename;
-                imwrite( outFile, digit );
-            }
-            rectangle( digitBounds, allDigits, Scalar( 255, 128, 255), 1, 8, 0 );
-        }
-        
-        imshow("bounds: "  + filename, digitBounds);
-    }
-
+    /**
+    * Detect Sudoku board and digits in the "raw" Mat
+    */
     vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned) {
         // Check if image is loaded fine
         if(!raw.data)
@@ -248,11 +179,9 @@ namespace Sudoku {
         Mat bw;
         adaptiveThreshold(~gray, bw, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 11, -2);
 
-        
-
         Mat lines = Mat::zeros( bw.size(), bw.type() );
-        extract_lines(bw, lines, true);
-        extract_lines(bw, lines, false);
+        extractLines(bw, lines, true);
+        extractLines(bw, lines, false);
         
         //imshow("lines: " + filename, lines);
 
@@ -268,19 +197,5 @@ namespace Sudoku {
 
         return digits;
     }
-
-    /*
-    int main(int argc, char** argv)
-    {
-        int index = 1;
-        while (index < argc) {
-            extractDigits(argv[index]);
-            index++;
-        }
-
-        waitKey(0);
-        return 0;
-    }
-    */
 }
 

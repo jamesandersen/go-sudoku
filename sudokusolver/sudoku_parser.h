@@ -8,8 +8,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	int test();
-    void test2(char * filename);
+    // Define methods to be exposed to Go here
+
+    extern const char *SVM_MODEL_VAR;
+
     const char* ParseSudoku(const char * encodedImageData, int length, bool saveOutput);
 
 #ifdef __cplusplus

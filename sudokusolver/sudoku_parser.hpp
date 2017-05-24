@@ -5,8 +5,8 @@
 
 using namespace std;
 
-int internalTest();
-void internalTest2(char * filename);
+extern const char *SVM_MODEL_ENV_VAR_NAME;
+
 string internalParseSudoku(const char * encodedImageData, int length, bool saveOutput);
 
 #endif

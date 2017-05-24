@@ -3,8 +3,11 @@ Package go-sudoku implements a simple library for solving sudoku puzzles.
 */
 package sudokusolver
 
+// FOO CPPFLAGS: -I/Users/jandersen/anaconda3/envs/opencvenv/include -I/Users/jandersen/anaconda3/envs/opencvenv/include/opencv2
+// Foo CPPFLAGS: -I/usr/local/Cellar/opencv3/3.2.0/include -I/usr/local/Cellar/opencv3/3.2.0/include/opencv2
+
 /*
-#cgo CPPFLAGS: -I/Users/jandersen/anaconda3/envs/opencvenv/include -I/Users/jandersen/anaconda3/envs/opencvenv/include/opencv2
+#cgo CPPFLAGS: -I/usr/local/Cellar/opencv3/3.2.0/include -I/usr/local/Cellar/opencv3/3.2.0/include/opencv2
 #cgo CXXFLAGS: --std=c++1z -stdlib=libc++
 #cgo darwin LDFLAGS: -L/usr/local/Cellar/opencv3/3.2.0/lib -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_ml -lopencv_objdetect -lopencv_photo
 #include <stdlib.h>
@@ -49,6 +52,8 @@ type SudokuBoard struct {
 	diag_units [][]string
 	all_units  [][]string
 }
+
+var svmModelPath string
 
 // Init - initializes a board type based on the mode
 func (b SudokuBoard) Init(mode SudokuMode) SudokuBoard {
@@ -118,10 +123,44 @@ func ParseSudokuFromFile(filename string) string {
 
 // Parse a Sudoku puzzle from an image byte array
 func ParseSudokuFromByteArray(data []byte) string {
+	if svmModelPath == "" {
+		svmModelPath = setupSVMModel()
+		svmEnvVar := C.GoString(C.SVM_MODEL_VAR)
+		err := os.Setenv(svmEnvVar, svmModelPath)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	p := C.CBytes(data)
 	defer C.free(p)
 
 	parsed := C.ParseSudoku((*C.char)(p), C.int(len(data)), true)
 
 	return C.GoString(parsed)
+}
+
+func setupSVMModel() string {
+	tmpDir := path.Join(os.TempDir(), "sudokusolver")
+	os.MkdirAll(tmpDir, os.ModePerm)
+
+	tmpModelFile := path.Join(tmpDir, "sudokuSVMModel.yml")
+	finfo, err := os.Stat(tmpModelFile)
+	if err != nil {
+		// create the file
+		data, err := Asset("data/model4.yml")
+		if err != nil {
+			panic(err)
+		}
+		err = ioutil.WriteFile(tmpModelFile, data, os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if finfo.IsDir() {
+		panic(tmpModelFile + " is a directory")
+	}
+
+	return tmpModelFile
 }
