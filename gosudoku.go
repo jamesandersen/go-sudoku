@@ -31,7 +31,7 @@ const (
 
 // A SudokuBoard represents a sudoku board
 type SudokuBoard struct {
-	values [9][9]string
+	values map[string]string
 
 	rowUnits  [][]string
 	colUnits  [][]string
@@ -47,7 +47,21 @@ type SudokuBoard struct {
 var BOXES = cross(ROWS, COLS)
 
 // Init - initializes a board type based on the mode
-func (b SudokuBoard) Init(mode SudokuMode) SudokuBoard {
+func (b SudokuBoard) Init(rawSudoku string, mode SudokuMode) SudokuBoard {
+
+	if len(rawSudoku) != len(BOXES) {
+		panic("raw Sudoku strings should be exactly 81 characters")
+	}
+
+	b.values = make(map[string]string)
+	for i, val := range rawSudoku {
+		if val == '.' {
+			b.values[BOXES[i]] = "123456789"
+		} else {
+			b.values[BOXES[i]] = string(val)
+		}
+	}
+
 	for _, row := range ROWS {
 		b.rowUnits = append(b.rowUnits, cross(string(row), COLS))
 	}
