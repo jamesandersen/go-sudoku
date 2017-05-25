@@ -19,9 +19,22 @@ namespace Sudoku {
     int SZ = 28;
 
     float affineFlags = WARP_INVERSE_MAP|INTER_LINEAR;
-    
 
-    string getEnvVar(string const& key)
+    HOGDescriptor hog(
+        Size(20,20), //winSize
+        Size(10,10), //blocksize
+        Size(5,5), //blockStride,
+        Size(10,10), //cellSize,
+                9, //nbins,
+                1, //derivAper,
+                -1, //winSigma,
+                0, //histogramNormType,
+                0.2, //L2HysThresh,
+                0,//gammal correction,
+                64,//nlevels=64
+                1);
+
+    static string getEnvVar(string const& key)
     {
         char const* val = getenv(key.c_str()); 
         cout << "Looking for " << key.c_str() << endl;
@@ -29,6 +42,8 @@ namespace Sudoku {
         
         return val == NULL ? std::string() : std::string(val);
     }
+
+    static Ptr<SVM> svmTrained;
 
     Mat deskew(Mat& img){
         Moments m = moments(img);
@@ -95,19 +110,7 @@ namespace Sudoku {
         }
     }
 
-    HOGDescriptor hog(
-            Size(20,20), //winSize
-            Size(10,10), //blocksize
-            Size(5,5), //blockStride,
-            Size(10,10), //cellSize,
-                    9, //nbins,
-                    1, //derivAper,
-                    -1, //winSigma,
-                    0, //histogramNormType,
-                    0.2, //L2HysThresh,
-                    0,//gammal correction,
-                    64,//nlevels=64
-                    1);
+
     
     /**
     * Calculate HOGDescriptor vector for each training/test digit image
@@ -236,7 +239,11 @@ namespace Sudoku {
         vector<Point> positions;
 
         // load pre-trained SVM
-        Ptr<SVM> svm = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
+        if (!svmTrained) {
+            svmTrained = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
+            cout << "Initialized trained SVM" << endl;
+        }
+        //Ptr<SVM> svm = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
 
         // Get HOG descriptor
         hog.compute(digitMat, descriptors, Size(), Size(), positions);
@@ -249,7 +256,7 @@ namespace Sudoku {
 
         // predict digit
         Mat testResponse;
-        svm->predict(testMat, testResponse);
+        svmTrained->predict(testMat, testResponse);
 
         // extract prediction
         return int(testResponse.at<float>(0,0));

@@ -3,7 +3,7 @@
 // data/model4.yml
 // DO NOT EDIT!
 
-package sudokusolver
+package sudokuparser
 
 import (
 	"bytes"
