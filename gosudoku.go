@@ -40,6 +40,7 @@ type SudokuBoard struct {
 	allUnits  [][]string
 
 	unitsByCell map[string][][]string
+	peersByCell map[string][]string
 }
 
 // BOXES is an array of all possible cells in standard sudoku puzzle
@@ -95,18 +96,20 @@ func (b SudokuBoard) Init(mode SudokuMode) SudokuBoard {
 	}
 
 	// initialize map of cells to all peer cells
-	b.unitsByCell = make(map[string][][]string)
+	b.peersByCell = make(map[string][]string)
 	for _, cell := range BOXES {
-		unitsForCell := make([][]string, 0)
-		for _, unit := range b.allUnits {
+		peersForCell := make([]string, 0)
+		distinctPeers := make(map[string]bool)
+		for _, unit := range b.unitsByCell[cell] {
 			for _, unitCell := range unit {
-				if cell == unitCell {
-					unitsForCell = append(unitsForCell, unit)
+				if _, present := distinctPeers[unitCell]; cell != unitCell && !present {
+					peersForCell = append(peersForCell, unitCell)
+					distinctPeers[unitCell] = true
 				}
 			}
 		}
-		// set the key/value with all units this cell belongs to
-		b.unitsByCell[cell] = unitsForCell
+		// set the key/value with all peers of this cell
+		b.peersByCell[cell] = peersForCell
 	}
 
 	return b

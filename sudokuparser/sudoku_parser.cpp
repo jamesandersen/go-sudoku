@@ -79,12 +79,14 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
             auto search = digitMap.find(key);
             if(search != digitMap.end()) {
                 puzzle += to_string(search->second);
+            } else {
+                puzzle += ".";
             }
-            puzzle += ",";
+            
         }
     }
     
-    return puzzle.substr(0, puzzle.length() - 1);
+    return puzzle;
 }
 
 /*

@@ -57,3 +57,32 @@ func TestUnitsByCell(t *testing.T) {
 		}
 	}
 }
+
+func TestPeersByCell(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	} else {
+		board := SudokuBoard{}
+		board = board.Init(STANDARD)
+		if unitsLength := len(board.peersByCell); unitsLength != len(BOXES) {
+			t.Error("Incorrect number of units in peersByCell")
+		}
+
+		peersA1 := board.peersByCell["A1"]
+		foundA9 := false
+		foundI1 := false
+		for i := range peersA1 {
+			if peersA1[i] == "A9" {
+				foundA9 = true
+			}
+
+			if peersA1[i] == "I1" {
+				foundI1 = true
+			}
+		}
+
+		if !foundA9 || !foundI1 {
+			t.Error("Peers for A1 does not include one of either A9 or I1")
+		}
+	}
+}
