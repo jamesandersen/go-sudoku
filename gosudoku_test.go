@@ -16,8 +16,7 @@ func TestStandardSudokuBoardInit(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	} else {
-		board := SudokuBoard{}
-		board = board.Init(simple, STANDARD)
+		board := NewSudoku(simple, STANDARD)
 		if unitsLength := len(board.allUnits); unitsLength != 27 {
 			t.Error("Standard Sudoku board should test 27 units")
 		}
@@ -28,8 +27,7 @@ func TestDiagonalSudokuBoardInit(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	} else {
-		board := SudokuBoard{}
-		board = board.Init(diagonal1, DIAGONAL)
+		board := NewSudoku(diagonal1, DIAGONAL)
 		if unitsLength := len(board.allUnits); unitsLength != 29 {
 			t.Error("Diagonal Sudoku board should test 29 units")
 		}
@@ -40,8 +38,7 @@ func TestUnitsByCell(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	} else {
-		board := SudokuBoard{}
-		board = board.Init(simple, STANDARD)
+		board := NewSudoku(simple, STANDARD)
 		if unitsLength := len(board.unitsByCell); unitsLength != len(BOXES) {
 			t.Error("Incorrect number of units in unitsByCell")
 		}
@@ -69,8 +66,7 @@ func TestPeersByCell(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	} else {
-		board := SudokuBoard{}
-		board = board.Init(simple, STANDARD)
+		board := NewSudoku(simple, STANDARD)
 		if unitsLength := len(board.peersByCell); unitsLength != len(BOXES) {
 			t.Error("Incorrect number of units in peersByCell")
 		}
@@ -98,10 +94,38 @@ func TestValues(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	} else {
-		board := SudokuBoard{}
-		board = board.Init(simple, STANDARD)
+		board := NewSudoku(simple, STANDARD)
 		if unitsLength := len(board.values); unitsLength != len(BOXES) {
 			t.Error("Incorrect number of values in peersByCell")
+		}
+	}
+}
+
+func TestDeepCopy(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	} else {
+		board := NewSudoku(simple, STANDARD)
+
+		board2 := board.Copy()
+		board2.values["A1"] = "4"
+		if board.values["A1"] == board2.values["A1"] {
+			t.Error("Board is not deep copied")
+		}
+	}
+}
+
+func TestSolve(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	} else {
+		board := NewSudoku(simple, STANDARD)
+
+		resultBoard, success := board.Solve()
+		if !success {
+			t.Error("Board was not solved")
+		} else {
+			resultBoard.Print()
 		}
 	}
 }
