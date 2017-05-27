@@ -89,3 +89,11 @@ func setupSVMModel() string {
 
 	return tmpModelFile
 }
+
+// Parse a Sudoku puzzle from an image byte array
+func TrainSudoku(trainConfigFile string) string {
+
+	parsed := C.TrainSudoku(C.CString(trainConfigFile))
+
+	return C.GoString(parsed)
+}

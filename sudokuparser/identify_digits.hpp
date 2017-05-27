@@ -5,7 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 namespace Sudoku {
-    void TrainSVM(std::string &pathName, int digitSize);
+    std::string TrainSVM(std::string pathName, int digitSize);
     int IdentifyDigit(cv::Mat &digitMat);
 }
 

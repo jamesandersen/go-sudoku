@@ -13,3 +13,7 @@ const char * ParseSudoku(const char * encodedImageData, int length, bool saveOut
     
     return internalParseSudoku(encodedImageData, length, saveOutput).c_str();
 }
+
+const char* TrainSudoku(const char * trainConfigFile) {
+    return internalTrainSudoku(trainConfigFile).c_str();
+}

@@ -14,6 +14,8 @@ extern "C" {
 
     const char* ParseSudoku(const char * encodedImageData, int length, bool saveOutput);
 
+    const char* TrainSudoku(const char * trainConfigFile);
+
 #ifdef __cplusplus
 }
 #endif

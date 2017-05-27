@@ -12,3 +12,9 @@ func TestParseSudokuFromFile(t *testing.T) {
 		t.Error(sample800wiFile + " not parsed as " + sample800wi)
 	}
 }
+
+func TestTrainSudoku(t *testing.T) {
+	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "Testing Train Setup" {
+		t.Error("Unexpected response from training Sudoku")
+	}
+}
