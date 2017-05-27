@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
           string result = internalTrainSudoku(argv[2]);
           cout << "Training returned: '" << result << "'" << endl;
 
-          cv::waitKey(0);
+          //cv::waitKey(0);
           return 0;
       }
 

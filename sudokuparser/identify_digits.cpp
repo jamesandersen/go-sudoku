@@ -23,10 +23,10 @@ namespace Sudoku {
     float affineFlags = WARP_INVERSE_MAP|INTER_LINEAR;
 
     HOGDescriptor hog(
-        Size(20,20), //winSize
-        Size(10,10), //blocksize
-        Size(5,5), //blockStride,
-        Size(10,10), //cellSize,
+        Size(28,28), //winSize
+        Size(14,14), //blocksize
+        Size(7,7), //blockStride,
+        Size(14,14), //cellSize,
                 9, //nbins,
                 1, //derivAper,
                 -1, //winSigma,

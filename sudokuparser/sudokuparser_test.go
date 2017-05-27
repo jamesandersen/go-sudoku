@@ -9,12 +9,12 @@ func TestParseSudokuFromFile(t *testing.T) {
 	const sample800wiFile = "../samples/800wi.png"
 
 	if sudokuString := ParseSudokuFromFile(sample800wiFile); sudokuString != sample800wi {
-		t.Error(sample800wiFile + " not parsed as " + sample800wi)
+		t.Error(sample800wiFile + " not parsed as " + sample800wi + ": \n" + sudokuString)
 	}
 }
 
 func TestTrainSudoku(t *testing.T) {
-	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "Testing Train Setup" {
-		t.Error("Unexpected response from training Sudoku")
+	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "98.28" {
+		t.Error("Unexpected response from training Sudoku: " + sudokuString)
 	}
 }
