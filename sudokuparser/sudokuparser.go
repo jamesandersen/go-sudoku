@@ -7,9 +7,12 @@ package sudokuparser
 // Foo CPPFLAGS: -I/usr/local/Cellar/opencv3/3.2.0/include -I/usr/local/Cellar/opencv3/3.2.0/include/opencv2
 
 /*
-#cgo CPPFLAGS: -I/usr/local/Cellar/opencv3/3.2.0/include -I/usr/local/Cellar/opencv3/3.2.0/include/opencv2
-#cgo CXXFLAGS: --std=c++1z -stdlib=libc++
+#cgo darwin CPPFLAGS: -I/usr/local/Cellar/opencv3/3.2.0/include -I/usr/local/Cellar/opencv3/3.2.0/include/opencv2
+#cgo darwin CXXFLAGS: --std=c++1z -stdlib=libc++
 #cgo darwin LDFLAGS: -L/usr/local/Cellar/opencv3/3.2.0/lib -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_ml -lopencv_objdetect -lopencv_photo
+#cgo linux CPPFLAGS: -I/usr/include -I/usr/include/opencv2 -I/usr/local/include -I/usr/local/include/opencv2
+#cgo linux CXXFLAGS: --std=c++1z
+#cgo linux LDFLAGS: -L/usr/lib -lopencv_core -lopencv_highgui -lopencv_imgcodecs -lopencv_imgproc -lopencv_ml -lopencv_objdetect -lopencv_photo
 #include <stdlib.h>
 #include "sudoku_parser.h"
 */
@@ -68,6 +71,7 @@ func setupSVMModel() string {
 	os.MkdirAll(tmpDir, os.ModePerm)
 
 	tmpModelFile := path.Join(tmpDir, "sudokuSVMModel.yml")
+	fmt.Println("Checking for SVM model file at " + tmpModelFile)
 	finfo, err := os.Stat(tmpModelFile)
 	if err != nil {
 		// create the file
@@ -81,11 +85,17 @@ func setupSVMModel() string {
 		}
 
 		fmt.Println("SVM model file written to " + tmpModelFile)
-	}
-
-	if finfo.IsDir() {
+	} else if finfo.IsDir() {
 		panic(tmpModelFile + " is a directory")
 	}
 
 	return tmpModelFile
+}
+
+// Parse a Sudoku puzzle from an image byte array
+func TrainSudoku(trainConfigFile string) string {
+
+	parsed := C.TrainSudoku(C.CString(trainConfigFile))
+
+	return C.GoString(parsed)
 }

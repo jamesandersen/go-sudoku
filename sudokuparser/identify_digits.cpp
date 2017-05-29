@@ -1,6 +1,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <iomanip> // setprecision
+#include <sstream>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect.hpp>
@@ -21,10 +23,10 @@ namespace Sudoku {
     float affineFlags = WARP_INVERSE_MAP|INTER_LINEAR;
 
     HOGDescriptor hog(
-        Size(20,20), //winSize
-        Size(10,10), //blocksize
-        Size(5,5), //blockStride,
-        Size(10,10), //cellSize,
+        Size(28,28), //winSize
+        Size(14,14), //blocksize
+        Size(7,7), //blockStride,
+        Size(14,14), //cellSize,
                 9, //nbins,
                 1, //derivAper,
                 -1, //winSigma,
@@ -95,8 +97,6 @@ namespace Sudoku {
     * Deskew digit images
     */
     void CreateDeskewedTrainTest(vector<Mat> &deskewedTrainCells,vector<Mat> &deskewedTestCells, vector<Mat> &trainCells, vector<Mat> &testCells){
-        
-
         for(int i=0;i<trainCells.size();i++){
 
             Mat deskewedImg = deskew(trainCells[i]);
@@ -109,8 +109,6 @@ namespace Sudoku {
             deskewedTestCells.push_back(deskewedImg);
         }
     }
-
-
     
     /**
     * Calculate HOGDescriptor vector for each training/test digit image
@@ -191,7 +189,7 @@ namespace Sudoku {
         accuracy = (count/testResponse.rows)*100;
     }
 
-    void TrainSVM(string &pathName, int digitSize){
+    string TrainSVM(string pathName, int digitSize){
 
         /* initialize random seed: */
         srand (234);
@@ -206,8 +204,8 @@ namespace Sudoku {
         vector<Mat> deskewedTestCells;
         CreateDeskewedTrainTest(deskewedTrainCells,deskewedTestCells,trainCells,testCells);
         
-        std::vector<std::vector<float> > trainHOG;
-        std::vector<std::vector<float> > testHOG;
+        vector<std::vector<float> > trainHOG;
+        vector<std::vector<float> > testHOG;
         CreateTrainTestHOG(trainHOG,testHOG,deskewedTrainCells,deskewedTestCells);
 
         int descriptor_size = trainHOG[0].size();
@@ -221,13 +219,13 @@ namespace Sudoku {
         Mat testResponse;
         SVMtrain(trainMat,trainLabels,testResponse,testMat); 
         
-        
         float count = 0;
         float accuracy = 0 ;
-        SVMevaluate(testResponse,count,accuracy,testLabels);
+        SVMevaluate(testResponse, count, accuracy, testLabels);
         
-        cout << "Accuracy        : " << accuracy << "%"<< endl;
-        //return 0;
+        stringstream stream;
+        stream << fixed << setprecision(2) << accuracy;
+        return stream.str();
     }
 
     /**
@@ -262,4 +260,3 @@ namespace Sudoku {
         return int(testResponse.at<float>(0,0));
     }
 }
-

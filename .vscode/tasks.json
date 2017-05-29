@@ -10,11 +10,12 @@
     "args": [
         "--std=c++1z",
         "-g", 
-        "${workspaceRoot}/src/sudoku_parser.cpp", 
-        "${workspaceRoot}/src/detect_digits.cpp", 
-        "${workspaceRoot}/src/identify_digits.cpp", 
-        "-I/Users/jandersen/anaconda3/envs/opencvenv/include/opencv2", 
-        "-I/Users/jandersen/anaconda3/envs/opencvenv/include", 
+        "${workspaceRoot}/sudokuparser/cli/sudoku_parser_cli.cpp", 
+        "${workspaceRoot}/sudokuparser/sudoku_parser.cpp", 
+        "${workspaceRoot}/sudokuparser/detect_digits.cpp", 
+        "${workspaceRoot}/sudokuparser/identify_digits.cpp", 
+        "-I/usr/local/Cellar/opencv3/3.2.0/include/opencv2", 
+        "-I/usr/local/Cellar/opencv3/3.2.0/include", 
         "-L/usr/local/Cellar/opencv3/3.2.0/lib",
         "-lopencv_core",
         "-lopencv_highgui",
@@ -24,7 +25,7 @@
         "-lopencv_objdetect",
         "-lopencv_photo",
         "-v",
-        "-o", "${workspaceRoot}/bin/sudoku_parser"
+        "-o", "${workspaceRoot}/sudokuparser/sudokuparser"
     ],
     "showOutput": "always"
 }

@@ -3,6 +3,7 @@
 #include "sudoku_parser.hpp"
 
 #include <string>
+#include <tuple>
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -13,7 +14,6 @@ using namespace std;
 using namespace cv;
 
 const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
-const int EXPORT_DIGIT_SIZE = 28;
 
 string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
     std::vector<char> encodedImageData(encImgData, encImgData + length);
@@ -22,12 +22,6 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
     Mat cleanedBoard;
     vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard);
     map<string, int> digitMap;
-
-    for (int y = 0; y < 9; y++ ) {
-        for (int x = 0; x < 9; x++) {
-
-        }
-    }
 
     if (digits.size() > 0) {
         // get the bounding box of all digits
@@ -89,33 +83,138 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
     return puzzle;
 }
 
-/*
-int main(int argc, char *argv[])
-{
-    // check if there is more than one argument and use the second one
-  //  (the first argument is the executable)
-  if (argc > 3)
-  {
-    string file(argv[1]);
-    string digitFile(argv[2]);
-    string sampleBoardFile(argv[3]);
-
-    
-    ifstream testFile(argv[3], std::ios::binary);
-    vector<char> fileContents((istreambuf_iterator<char>(testFile)), istreambuf_iterator<char>());
-
-    //char* boardBytes = readFileBytes(argv[3]);
-
-    string boardString = ParseSudoku(fileContents, true);
-    cout << sampleBoardFile << " parsed as " << boardString << endl;
-    //Mat digitImg = imread(digitFile);
-    //int digit = IdentifyDigit(digitImg);
-
-    ///TrainSVM(file, 28);
-
-  } else {
-      cout << "No argument" << endl;
-  }
-
+// https://stackoverflow.com/a/9676623/385152
+template<typename T>
+vector<T> 
+split(const T & str, const T & delimiters) {
+    vector<T> v;
+    typename T::size_type start = 0;
+    auto pos = str.find_first_of(delimiters, start);
+    while(pos != T::npos) {
+        if(pos != start) // ignore empty tokens
+            v.emplace_back(str, start, pos - start);
+        start = pos + 1;
+        pos = str.find_first_of(delimiters, start);
+    }
+    if(start < str.length()) // ignore trailing delimiter
+        v.emplace_back(str, start, str.length() - start); // add what's left of the string
+    return v;
 }
-*/
+
+map<string, string> parseTrainConfig(const char * trainConfigFile) {
+    map<string, string> trainFiles;
+    ifstream file(trainConfigFile);
+    string line;
+    while(getline(file, line)) {
+        vector<string> v = split<string>(line, ",");
+        if (v.size() == 2) {
+            trainFiles[v[0]] = v[1];
+        } else {
+            cout << "Discarding line with unexpected number of tokens: " << line << endl;
+        }
+    }
+    return trainFiles;
+}
+
+map<int, vector<Mat> > labelDigits(Mat &clean, vector<Rect> digits, string labels) {
+    map<int, vector<Mat> > labeled;
+    
+    if (labels.length() != 81) {
+        throw runtime_error("Invalid label string!");
+    }
+
+    Rect allDigits = digits[0];
+    for( size_t i = 0; i < digits.size(); i++ ) { allDigits |= digits[i]; }
+
+    double cellWidth = allDigits.width / 9.0;
+    double cellHeight = allDigits.height / 9.0;
+
+    for( size_t i = 0; i< digits.size(); i++ )
+    {
+        Point center = (digits[i].br() + digits[i].tl())*0.5;
+        int row = int(floor((center.y - allDigits.y) / cellHeight));
+        int col = int(floor((center.x - allDigits.x) / cellWidth));
+
+        string labelStr = labels.substr((row * 9) + col, 1);
+        if (labelStr != ".") {
+            int label = atoi(labelStr.c_str());
+
+            // Extract the digit
+            Mat digit = Mat(clean, digits[i]);
+            resize(digit, digit, Size(EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE), 0, 0, CV_INTER_AREA);
+            // despeckle
+            fastNlMeansDenoising(digit, digit, 50.0, 5, clean.cols / 10);
+
+            labeled[label].push_back(digit);
+        }
+
+        // draw random colored rect
+        //Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+        //rectangle( digitBounds, digits[i], color, 1, 8, 0 );
+
+
+        //replace(filename, "samples/", "");
+        //string outFile = "digits/" + string(1, rowChar) + to_string(col) + "_" + filename;
+        //imwrite( outFile, digit );
+    }
+
+    return labeled;
+}
+
+string internalTrainSudoku(const char * trainConfigFile) {
+    map<string, string> trainFiles = parseTrainConfig(trainConfigFile);
+
+    map<int, vector<Mat>> allLabeledDigits;
+    for( const pair<string, string> element : trainFiles )
+    {
+        try {
+            // read sample image and find digits
+            auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
+            Mat cleanedBoard;
+            auto digits = FindDigitRects(sudokuBoard, cleanedBoard);
+
+            // extract digit images with labels
+            auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);
+            for( const pair<int, vector<Mat> > el : labeledDigits )
+            {
+                for(Mat digit : el.second)
+                    allLabeledDigits[el.first].push_back(digit);
+            }
+            //imshow(file, cleanedBoard);
+            cout << "captured " << labeledDigits.size() << " digits from " << element.first << endl;
+        } catch (const std::exception& e) {
+            cout << "Exception occurred while processing " << element.first << ": " << e.what() << endl;
+        } catch (...) {
+            cout << "Exception occurred while processing " << element.first << endl;
+        }
+    }
+
+    // determine the size of the training set
+    int maxCols = 0;
+    for( const pair<int, vector<Mat> > el : allLabeledDigits )
+    {
+        maxCols = max(maxCols, static_cast<int>(el.second.size()) * EXPORT_DIGIT_SIZE);
+    }
+    Mat combined = Mat::zeros(Size(maxCols, static_cast<int>(allLabeledDigits.size()) * EXPORT_DIGIT_SIZE), CV_8UC1);
+    for( const pair<int, vector<Mat> > el: allLabeledDigits )
+    {
+        int x = 0;
+        int y = (el.first - 1) * EXPORT_DIGIT_SIZE;
+        for (Mat digit : el.second) {
+            digit.copyTo(combined(Rect(x, y, EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE)));
+            x += EXPORT_DIGIT_SIZE;
+        }
+    }
+
+    // write out the training data image
+    imwrite("combined.png", combined);
+
+    // Ensure model file location is set
+    if (!getenv(SVM_MODEL_ENV_VAR_NAME)) {
+        setenv(SVM_MODEL_ENV_VAR_NAME, "model4.yml", 0);
+    }
+
+    // Train the SVM
+    return TrainSVM("combined.png", EXPORT_DIGIT_SIZE);
+}
+
