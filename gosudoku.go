@@ -304,8 +304,8 @@ func (board *SudokuBoard) Copy() *SudokuBoard {
 	return boardCopy
 }
 
-// Print prints the puzzle
-func (board *SudokuBoard) Print() {
+// ToString returns a string represenation of the puzzle
+func (board *SudokuBoard) ToString() string {
 	str := ""
 	for i, cell := range BOXES {
 		if i%9 == 0 {
@@ -330,35 +330,41 @@ func (board *SudokuBoard) Print() {
 		}
 	}
 
-	fmt.Print(str + "|\n+-------+-------+-------+\n")
+	return str + "|\n+-------+-------+-------+\n"
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+// Print prints the puzzle
+func (board *SudokuBoard) Print() {
+	fmt.Print(board.ToString())
 }
 
 func main() {
 	var filename string
-
+	var mode string
+	flag.StringVar(&mode, "mode", "serve", "whether to serve web app or parse additional args in CLI mode")
 	flag.StringVar(&filename, "filename", "", "Sudoku puzzle image")
 
 	flag.Parse()
 
-	parsed := sudokuparser.ParseSudokuFromFile(filename)
+	if mode == "serve" {
+		http.HandleFunc("/solve", solveHandler)
+		http.HandleFunc("/sudoku", sudokuFormHandler)
+		http.HandleFunc("/", sudokuFormHandler)
+		http.ListenAndServe(":8080", nil)
+	} else if mode == "cli" {
+		parsed := sudokuparser.ParseSudokuFromFile(filename)
 
-	fmt.Println("Parsed sudoku: " + parsed)
+		fmt.Println("Parsed sudoku: " + parsed)
 
-	board := NewSudoku(parsed, STANDARD)
-	fmt.Print("Attempting to solve Sudoku...\n")
-	board.Print()
-	finalBoard, success := board.Solve()
+		board := NewSudoku(parsed, STANDARD)
+		fmt.Print("Attempting to solve Sudoku...\n")
+		board.Print()
+		finalBoard, success := board.Solve()
 
-	if success {
-		finalBoard.Print()
-	} else {
-		fmt.Print("Board not solved...")
+		if success {
+			finalBoard.Print()
+		} else {
+			fmt.Print("Board not solved...")
+		}
 	}
-
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
 }
