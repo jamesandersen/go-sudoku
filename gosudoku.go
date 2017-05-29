@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/jamesandersen/gosudoku/sudokuparser"
@@ -332,6 +333,10 @@ func (board *SudokuBoard) Print() {
 	fmt.Print(str + "|\n+-------+-------+-------+\n")
 }
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+
 func main() {
 	var filename string
 
@@ -353,4 +358,7 @@ func main() {
 	} else {
 		fmt.Print("Board not solved...")
 	}
+
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":8080", nil)
 }

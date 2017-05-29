@@ -3,6 +3,7 @@
 #include "sudoku_parser.hpp"
 
 #include <string>
+#include <tuple>
 #include <iostream>
 #include <fstream>
 #include <iterator>
@@ -164,42 +165,42 @@ string internalTrainSudoku(const char * trainConfigFile) {
     map<string, string> trainFiles = parseTrainConfig(trainConfigFile);
 
     map<int, vector<Mat>> allLabeledDigits;
-    for( const auto& [file, labels] : trainFiles )
+    for( const pair<string, string> element : trainFiles )
     {
         try {
             // read sample image and find digits
-            auto sudokuBoard = imread(file, CV_LOAD_IMAGE_ANYDEPTH);
+            auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
             Mat cleanedBoard;
             auto digits = FindDigitRects(sudokuBoard, cleanedBoard);
 
             // extract digit images with labels
-            auto labeledDigits = labelDigits(cleanedBoard, digits, labels);
-            for( const auto& [label, digits] : labeledDigits )
+            auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);
+            for( const pair<int, vector<Mat> > el : labeledDigits )
             {
-                for(Mat digit : digits)
-                    allLabeledDigits[label].push_back(digit);
+                for(Mat digit : el.second)
+                    allLabeledDigits[el.first].push_back(digit);
             }
             //imshow(file, cleanedBoard);
-            cout << "captured " << labeledDigits.size() << " digits from " << file << endl;
+            cout << "captured " << labeledDigits.size() << " digits from " << element.first << endl;
         } catch (const std::exception& e) {
-            cout << "Exception occurred while processing " << file << ": " << e.what() << endl;
+            cout << "Exception occurred while processing " << element.first << ": " << e.what() << endl;
         } catch (...) {
-            cout << "Exception occurred while processing " << file << endl;
+            cout << "Exception occurred while processing " << element.first << endl;
         }
     }
 
     // determine the size of the training set
     int maxCols = 0;
-    for( const auto& [label, digits] : allLabeledDigits )
+    for( const pair<int, vector<Mat> > el : allLabeledDigits )
     {
-        maxCols = max(maxCols, static_cast<int>(digits.size()) * EXPORT_DIGIT_SIZE);
+        maxCols = max(maxCols, static_cast<int>(el.second.size()) * EXPORT_DIGIT_SIZE);
     }
     Mat combined = Mat::zeros(Size(maxCols, static_cast<int>(allLabeledDigits.size()) * EXPORT_DIGIT_SIZE), CV_8UC1);
-    for( const auto& [label, digits] : allLabeledDigits )
+    for( const pair<int, vector<Mat> > el: allLabeledDigits )
     {
         int x = 0;
-        int y = (label - 1) * EXPORT_DIGIT_SIZE;
-        for (Mat digit : digits) {
+        int y = (el.first - 1) * EXPORT_DIGIT_SIZE;
+        for (Mat digit : el.second) {
             digit.copyTo(combined(Rect(x, y, EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE)));
             x += EXPORT_DIGIT_SIZE;
         }

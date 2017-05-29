@@ -1,12 +1,16 @@
 #include <iostream>
+#include <map>
+#include <string>
+#include <iterator>
+#include <functional>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace cv;
 RNG rng(12345);
 
-using LineTestFn = std::function<bool(Rect&, Mat&)>;
-using ExpandRectFn = std::function<Rect(Rect&, Mat&)>;
+using LineTestFn = function<bool(Rect&, Mat&)>;
+using ExpandRectFn = function<Rect(Rect&, Mat&)>;
 
 namespace Sudoku {
 
