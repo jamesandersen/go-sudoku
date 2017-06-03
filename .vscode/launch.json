@@ -11,7 +11,7 @@
             "host": "127.0.0.1",
             "program": "${fileDirname}",
             "env": {},
-            "args": [],
+            "args": ["-filename=samples/800wi.png"],
             "showLog": true
         },
         {
@@ -26,6 +26,56 @@
             "env": {},
             "args": [],
             "showLog": true
+        },
+        {
+            "name": "C++ Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/sudokuparser/sudokuparser",
+            "args": [
+                "parse",
+                //"../samples/800wi.png",
+                "../samples/Sudoku2366easy.jpg"
+                //"train",
+                //"train_config.csv"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}/sudokuparser/",
+            "environment": [
+                { 
+                    "name": "DYLD_LIBRARY_PATH",
+                    "value": "/usr/lib:/Users/jandersen/anaconda3/envs/opencvenv/lib"
+                },
+                {
+                    "name": "GO_SUDOKU_SVM_MODEL",
+                    "value": "${workspaceRoot}/sudokuparser/data/model4.yml"
+                }
+            ],
+            "externalConsole": true,
+            "preLaunchTask": "g++",
+            "linux": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            },
+            "osx": {
+                "MIMode": "lldb"
+            },
+            "windows": {
+                "MIMode": "gdb",
+                "setupCommands": [
+                    {
+                        "description": "Enable pretty-printing for gdb",
+                        "text": "-enable-pretty-printing",
+                        "ignoreFailures": true
+                    }
+                ]
+            }
         }
     ]
 }

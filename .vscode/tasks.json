@@ -1,0 +1,31 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    
+    // /usr/local/Cellar/opencv3/3.2.0/lib
+    // /Users/jandersen/anaconda3/envs/opencvenv/lib
+    "version": "0.1.0",
+    "command": "g++",
+    "isShellCommand": true,
+    "args": [
+        "--std=c++1z",
+        "-g", 
+        "${workspaceRoot}/sudokuparser/cli/sudoku_parser_cli.cpp", 
+        "${workspaceRoot}/sudokuparser/sudoku_parser.cpp", 
+        "${workspaceRoot}/sudokuparser/detect_digits.cpp", 
+        "${workspaceRoot}/sudokuparser/identify_digits.cpp", 
+        "-I/usr/local/Cellar/opencv3/3.2.0/include/opencv2", 
+        "-I/usr/local/Cellar/opencv3/3.2.0/include", 
+        "-L/usr/local/Cellar/opencv3/3.2.0/lib",
+        "-lopencv_core",
+        "-lopencv_highgui",
+        "-lopencv_imgcodecs",
+        "-lopencv_imgproc",
+        "-lopencv_ml",
+        "-lopencv_objdetect",
+        "-lopencv_photo",
+        "-v",
+        "-o", "${workspaceRoot}/sudokuparser/sudokuparser"
+    ],
+    "showOutput": "always"
+}
