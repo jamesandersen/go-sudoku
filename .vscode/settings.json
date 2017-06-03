@@ -38,6 +38,7 @@
         "filesystem": "cpp",
         "string_view": "cpp",
         "algorithm": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "__tuple": "cpp"
     }
 }

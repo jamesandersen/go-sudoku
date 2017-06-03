@@ -24,6 +24,8 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
+	"unsafe"
 )
 
 var svmModelPath string
@@ -58,12 +60,16 @@ func ParseSudokuFromByteArray(data []byte) string {
 		fmt.Print(fmt.Sprintf("Set environment variable %s=%s\n", svmEnvVar, svmModelPath))
 	}
 
+	parsed := C.CString(strings.Repeat("0", 81))
+	defer C.free(unsafe.Pointer(parsed))
+
 	p := C.CBytes(data)
-	defer C.free(p)
+	defer C.free(unsafe.Pointer(p))
 
-	parsed := C.ParseSudoku((*C.char)(p), C.int(len(data)), true)
+	C.ParseSudoku((*C.char)(p), C.int(len(data)), true, parsed)
+	goString := C.GoString(parsed)
 
-	return C.GoString(parsed)
+	return goString
 }
 
 func setupSVMModel() string {

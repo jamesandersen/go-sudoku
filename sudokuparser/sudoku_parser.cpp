@@ -15,7 +15,7 @@ using namespace cv;
 
 const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
 
-string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
+const string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
@@ -59,7 +59,6 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
             }
             
             digitMap[string(1, rowChar) + to_string(col + 1)] = digit;
-            //cout << string(1, rowChar) + to_string(col + 1) + " identified as " + to_string(digit) << endl;
         }
         
         rectangle( digitBounds, allDigits, teal, 1, 8, 0 );
@@ -80,6 +79,8 @@ string internalParseSudoku(const char * encImgData, int length, bool saveOutput)
         }
     }
     
+    cout << length << " byte puzzle parsed as " << puzzle << endl;
+
     return puzzle;
 }
 

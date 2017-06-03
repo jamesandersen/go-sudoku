@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <iomanip> // setprecision
 #include <sstream>
@@ -238,24 +239,29 @@ namespace Sudoku {
 
         // load pre-trained SVM
         if (!svmTrained) {
-            svmTrained = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
-            cout << "Initialized trained SVM" << endl;
+            auto model_file = getEnvVar(SVM_MODEL_ENV_VAR_NAME);
+            ifstream fs(model_file);
+            if ( !fs.good()) {
+                throw invalid_argument("Invalid model file: " + model_file);
+            }
+            svmTrained = Algorithm::load<SVM>(model_file);
+            cout << "Initialized trained SVM from " << model_file << endl;
         }
-        //Ptr<SVM> svm = Algorithm::load<SVM>(getEnvVar(SVM_MODEL_ENV_VAR_NAME));
 
         // Get HOG descriptor
         hog.compute(digitMat, descriptors, Size(), Size(), positions);
-
+        //cout << "Computed HOGDescriptor for " << digitMat.cols << "x" << digitMat.rows << " image" << endl;
         // convert HOG descriptor to Mat
-        Mat testMat(1, descriptors.size(), CV_32FC1);
+        Mat testMat = Mat::zeros(1, descriptors.size(), CV_32FC1);
         for (int x = 0; x < testMat.cols; x++) {
             testMat.at<float>(0, x) = descriptors[x];
         }
 
         // predict digit
         Mat testResponse;
+        imwrite("testdigit.png", digitMat);
         svmTrained->predict(testMat, testResponse);
-
+        //cout << "Predicted digit for " << digitMat.cols << "x" << digitMat.rows << " image" << endl;
         // extract prediction
         return int(testResponse.at<float>(0,0));
     }

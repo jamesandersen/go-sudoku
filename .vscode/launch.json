@@ -33,8 +33,11 @@
             "request": "launch",
             "program": "${workspaceRoot}/sudokuparser/sudokuparser",
             "args": [
-                "train",
-                "train_config.csv"
+                "parse",
+                //"../samples/800wi.png",
+                "../samples/Sudoku2366easy.jpg"
+                //"train",
+                //"train_config.csv"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/sudokuparser/",
@@ -42,6 +45,10 @@
                 { 
                     "name": "DYLD_LIBRARY_PATH",
                     "value": "/usr/lib:/Users/jandersen/anaconda3/envs/opencvenv/lib"
+                },
+                {
+                    "name": "GO_SUDOKU_SVM_MODEL",
+                    "value": "${workspaceRoot}/sudokuparser/data/model4.yml"
                 }
             ],
             "externalConsole": true,
