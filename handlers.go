@@ -13,9 +13,11 @@ import (
 )
 
 type Page struct {
-	Title string
-	Image template.URL
-	Body  []byte
+	Title   string
+	Image   template.URL
+	Success bool
+	Body    []byte
+	Error   string
 }
 
 func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +27,16 @@ func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func solveHandler(w http.ResponseWriter, r *http.Request) {
+	var p *Page
+	t, _ := template.ParseFiles("sudoku.html")
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovering from panic in solveHandler...", r)
+			p = &Page{Title: "Error", Error: fmt.Sprintf("%v", r), Success: false}
+			t.Execute(w, p)
+		}
+	}()
 
 	var Buf bytes.Buffer
 	// in your case file would be fileupload
@@ -48,18 +60,17 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 	board.Print()
 	finalBoard, success := board.Solve()
 
-	var p *Page
 	imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
 	if success {
-		p = &Page{Title: "Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL)}
+		p = &Page{Title: "Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL), Success: true}
 	} else {
-		p = &Page{Title: "Not Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL)}
+		p = &Page{Title: "Not Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL), Success: false}
 	}
 
 	// I reset the buffer in case I want to use it again
 	// reduces memory allocations in more intense projects
 	Buf.Reset()
 
-	t, _ := template.ParseFiles("sudoku.html")
+	//t, _ := template.ParseFiles("sudoku.html")
 	t.Execute(w, p)
 }

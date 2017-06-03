@@ -5,7 +5,17 @@
             .box__uploading,
             .box__success,
             .box__error {
-            display: none;
+                display: none;
+            }
+
+            .error {
+                color: red;
+                font-weight: bold;
+            }
+
+            img.puzzle {
+                max-width: 400;
+                max-height: 400;
             }
         </style>
         <script>
@@ -16,7 +26,14 @@
         </script>
     </head>
 <h1>{{.Title}}</h1>
-<img src="{{.Image}}"/>
+{{if .Success}}
+<img class="puzzle" src="{{.Image}}"/>
+{{end}}
+
+{{if not .Success}}
+<div class="error">{{.Error}}</div>
+{{end}}
+
 <form class="box" method="post" action="/solve" enctype="multipart/form-data">
   <div class="box__input">
     <input  type="file" name="sudokuFile" id="file" data-multiple-caption="{count} files selected" multiple />
