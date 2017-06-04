@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -16,25 +17,46 @@ type Page struct {
 	Title   string
 	Image   template.URL
 	Success bool
-	Body    []byte
+	Body    string
 	Error   string
 }
 
 func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
-	p := &Page{Title: "TestPage", Body: []byte("This is a sample Page.")}
-	t, _ := template.ParseFiles("sudoku.html")
-	t.Execute(w, p)
+	switch r.Method {
+	case "GET":
+		p := &Page{Title: "TestPage", Body: "This is a sample Page."}
+		t, _ := template.ParseFiles("web/sudoku.html")
+		t.Execute(w, p)
+	case "POST":
+		// Create a new record.
+		solveHandler(w, r)
+	default:
+		// Give an error message.
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	}
 }
 
 func solveHandler(w http.ResponseWriter, r *http.Request) {
 	var p *Page
-	t, _ := template.ParseFiles("sudoku.html")
+	t, _ := template.ParseFiles("web/sudoku.html")
 
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovering from panic in solveHandler...", r)
-			p = &Page{Title: "Error", Error: fmt.Sprintf("%v", r), Success: false}
-			t.Execute(w, p)
+		if err := recover(); err != nil {
+			fmt.Println("Recovering from panic in solveHandler...", err)
+			p = &Page{Title: "Error", Error: fmt.Sprintf("%v", err), Success: false}
+			if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+				js, jerr := json.Marshal(p)
+				if jerr != nil {
+					http.Error(w, jerr.Error(), http.StatusInternalServerError)
+					return
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+				http.Error(w, string(js), http.StatusInternalServerError)
+			} else {
+				t.Execute(w, p)
+			}
+
 		}
 	}()
 
@@ -60,17 +82,31 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 	board.Print()
 	finalBoard, success := board.Solve()
 
-	imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
-	if success {
-		p = &Page{Title: "Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL), Success: true}
-	} else {
-		p = &Page{Title: "Not Solved", Body: []byte(finalBoard.ToString()), Image: template.URL(imgDataURL), Success: false}
-	}
-
 	// I reset the buffer in case I want to use it again
 	// reduces memory allocations in more intense projects
 	Buf.Reset()
 
-	//t, _ := template.ParseFiles("sudoku.html")
-	t.Execute(w, p)
+	if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
+		if success {
+			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Error: ""}
+		} else {
+			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
+		}
+		js, err := json.Marshal(p)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	} else {
+		imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
+		if success {
+			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: true}
+		} else {
+			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: false}
+		}
+		t.Execute(w, p)
+	}
 }
