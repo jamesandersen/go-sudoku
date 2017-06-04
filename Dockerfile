@@ -16,7 +16,7 @@ RUN ln /usr/lib/libopencv_core.so.3.2.0 /usr/lib/libopencv_core.so \
     && ln /usr/lib/libopencv_photo.so.3.2.0 /usr/lib/libopencv_photo.so
 WORKDIR /root/
 COPY --from=0 /go/bin/gosudoku .
-COPY ./sudoku.html .
+COPY web ./web
 # Set the PORT environment variable inside the container
 ENV PORT 8080
 # Expose port 8080 to the host so we can access our application

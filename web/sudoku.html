@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>OpenCV Sudoku Solver</title>
+    <link type="text/css" href="static/style.css" rel="stylesheet">
+    <script type="text/javascript" src="static/app.js"></script>
+</head>
+<body>
+    <div class="solver">
+        <div class="header">
+            <h1>Sudoku Solver</h1>
+        </div>
+        <div class="flex-row puzzle">
+            <div id="drop_zone" 
+                ondrop="drop_handler(event);" 
+                ondragover="dragover_handler(event);" 
+                ondragend="dragend_handler(event);">
+                <strong>Drag a Sudoku puzzle here...</strong>
+            </div>
+            <img id="puzzle-src" class="puzzle" src="{{.Image}}" /> 
+        </div>
+        
+        <div class="flex-row solution">
+            <form class="box" method="post" action="/" enctype="multipart/form-data">
+                <input type="file" name="sudokuFile" id="file" data-multiple-caption="{count} files selected" multiple />
+                <label for="file"><strong>Choose a file</strong>.</label>
+
+                <button class="box__button" type="submit">Upload</button>
+                {{if .Success}}
+                <div><textarea id="solution" name="body" rows="14" cols="22" style="font-family: monospace">{{printf "%s" .Body}}</textarea></div>
+                {{end}}
+                {{if not .Success}}
+                <div id="error" class="error">{{.Error}}</div>
+                {{end}}
+            </form>
+        </div>    
+    </div>
+</body>
+</html>

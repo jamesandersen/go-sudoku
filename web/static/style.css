@@ -1,0 +1,70 @@
+html, body {
+    height: 100%;
+    margin: 0px;
+}
+
+.solver {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.flex-row { display: flex; }
+
+.header {
+    height: 40px;
+    flex: 0 40px;
+    background: blue;
+    color: white;
+    box-shadow: -1px 3px 7px 2px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+.header h1 {
+    line-height: 40px;
+    font-family: Helvetica, Arial, sans-serif;
+    margin: 0;
+    text-align: center;
+}
+
+.flex-row.puzzle {
+    height: 100%;
+    flex: 1 50%;
+    padding: 1rem;
+    position: relative;
+}
+#drop_zone {
+  position: absolute;
+  background-color: rgba(0, 255, 255, 0.6);
+  border: 5px solid blue;
+  top:0px; bottom: 0px;
+  left: 10%;
+  width: 80%;
+  opacity: 0;
+  transition: opacity 0.5s;
+  text-align: center;
+  font-size: 24pt;
+  padding-top:25%;
+}
+#drop_zone:hover {
+  opacity: 1;
+}
+img.puzzle {
+
+    max-width: 400;
+    max-height: 400px;
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+}
+
+.flex-row.solution {
+    flex: 1 50%;
+    overflow: auto;
+    text-align:center;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
