@@ -347,8 +347,9 @@ func main() {
 	flag.Parse()
 
 	if mode == "serve" {
+		fs := http.FileServer(http.Dir("web/static"))
+		http.Handle("/static/", http.StripPrefix("/static/", fs))
 		http.HandleFunc("/solve", solveHandler)
-		http.HandleFunc("/sudoku", sudokuFormHandler)
 		http.HandleFunc("/", sudokuFormHandler)
 		http.ListenAndServe(":8080", nil)
 	} else if mode == "cli" {
