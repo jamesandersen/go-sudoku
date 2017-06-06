@@ -1,6 +1,11 @@
 html, body {
     height: 100%;
     margin: 0px;
+    font-family: 'Roboto', sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: 'Droid Serif', serif;
 }
 
 .solver {
@@ -13,16 +18,15 @@ html, body {
 .flex-row { display: flex; }
 
 .header {
-    height: 40px;
-    flex: 0 40px;
+    height: 50px;
+    flex: 0 50px;
     background: blue;
     color: white;
     box-shadow: -1px 3px 7px 2px rgba(0, 0, 0, 0.2);
     z-index: 100;
 }
 .header h1 {
-    line-height: 40px;
-    font-family: Helvetica, Arial, sans-serif;
+    line-height: 50px;
     margin: 0;
     text-align: center;
 }
@@ -31,40 +35,155 @@ html, body {
     height: 100%;
     flex: 1 50%;
     padding: 1rem;
+    padding-top: 2rem;
     position: relative;
 }
-#drop_zone {
-  position: absolute;
-  background-color: rgba(0, 255, 255, 0.6);
-  border: 5px solid blue;
-  top:0px; bottom: 0px;
-  left: 10%;
-  width: 80%;
-  opacity: 0;
-  transition: opacity 0.5s;
-  text-align: center;
-  font-size: 24pt;
-  padding-top:25%;
+
+.flex-row.acknowledgements {
+    flex: none;
+    flex-direction: column;
+    padding: 1rem;
+    font-size: 10pt;
 }
-#drop_zone:hover {
+
+#drop-container {
+  position: absolute;
+  top: 0%;
+  bottom: 0%;
+  left: 0%;
+  right:  0%;
+  padding: 1rem;
+  /* padding-top: 2rem; */
+}
+
+#dropZone {
+    background-color: rgba(141, 139, 158, 0.78);
+    /* border: 5px solid blue; */
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s;
+    text-align: center;
+    font-size: 12pt;
+    padding: 1rem;
+    border: lightgray 4px dashed;
+    border-radius: 6px;
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: column wrap;
+    /* flex-direction: column; */
+    /* flex-wrap: wrap; */
+    justify-content: flex-start;
+    align-items: center;
+    color: white;
+}
+
+#dropZone:hover {
   opacity: 1;
 }
-img.puzzle {
 
+#drag-icon, #sudoku-file-container {
+    flex: 1 1 50%;
+    /* width: 100%; */
+    /* height: 100%; */
+}
+
+#sudoku-file-container {
+    overflow: hidden;
+    position: relative;
+    min-width: 120px;
+}
+
+#sudoku-file-container div {
+    margin-top: 30%;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    transition: all 0.5s;
+    background-color: #4d90fe;
+    background-image: -webkit-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: -moz-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: -ms-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: -o-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: linear-gradient(top,#4d90fe,#4787ed);
+    border: 1px solid #3079ed;
+    color: #fff;
+    cursor: pointer;
+}
+
+#sudoku-file-container div:hover {
+    background-color: #4d90fe;
+    background-image: -webkit-linear-gradient(top,#4579ce,#2567d0);
+    background-image: -moz-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: -ms-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: -o-linear-gradient(top,#4d90fe,#4787ed);
+    background-image: linear-gradient(top,#4d90fe,#4787ed);
+    border: 1px solid #3079ed;
+}
+
+#drag-label, #file-label {
+    flex: 1 1 30%;
+    width: 50%;
+}
+
+#sudokuFile {
+    cursor: inherit;
+    display: block;
+    font-size: 999px;
+    filter: alpha(opacity=0);
+    min-height: 100%;
+    min-width: 100%;
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    text-align: right;
+    top: 0;
+
+    
+}
+
+img.puzzle {
     max-width: 400;
     max-height: 400px;
     object-fit: contain;
     width: 100%;
     height: 100%;
+    border: 0;
 }
 
 .flex-row.solution {
     flex: 1 50%;
     overflow: auto;
-    text-align:center;
+    text-align: center;
+    background-color: #f6f6f6;
+    padding: 1rem;
+}
+
+#solution {
+    font-family: monospace;
+    margin-left: auto;
+    margin-right: auto;
+    /* height: 190px; */
+    /* user-select: none; */
+    font-size: 12pt;
 }
 
 .error {
     color: red;
     font-weight: bold;
+}
+
+img.github {
+    position: absolute; 
+    top: 0; 
+    right: 0; 
+    border: 0;
+    z-index: 101;
+}
+
+/* Small screens */
+@media all and (max-width: 600px) {
+  img.github {
+    /* On small screens, we are no longer using row direction but column */
+    display: none;
+  }
 }

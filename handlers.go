@@ -24,7 +24,7 @@ type Page struct {
 func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		p := &Page{Title: "TestPage", Body: "This is a sample Page."}
+		p := &Page{Title: "TestPage", Body: "--Solution goes here--."}
 		t, _ := template.ParseFiles("web/sudoku.html")
 		t.Execute(w, p)
 	case "POST":

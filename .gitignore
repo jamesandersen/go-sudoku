@@ -23,6 +23,10 @@ _testmain.go
 *.test
 *.prof
 
+gosudoku
+debug
 debug.test
+sudokuparser/sudokuparser
 sudokuparser.dSYM
+testdigit.png
 detected.png
