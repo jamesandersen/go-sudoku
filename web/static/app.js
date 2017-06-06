@@ -18,12 +18,14 @@
 
     // Wire up drag/drop events
     dropZone.addEventListener("drop", drop_handler);
+    dropZone.addEventListener("dragenter", dragenter_handler);
     dropZone.addEventListener("dragover", dragover_handler);
     dropZone.addEventListener("dragend", dragend_handler);
   });
 
   function drop_handler(ev) {
     console.log("Drop");
+    dropZone.className = dropZone.className.replace(' drag-active', ''); 
     ev.preventDefault();
     // If dropped items aren't files, reject them
     var dt = ev.dataTransfer;
@@ -44,13 +46,21 @@
     }
   }
 
+  function dragenter_handler(ev) { 
+    if (dropZone.className.indexOf('drag-active') == -1) {
+      dropZone.className += ' drag-active';
+    }
+  }
+
   function dragover_handler(ev) {
+    
     // Prevent default select and drag behavior
     ev.preventDefault();
   }
 
   function dragend_handler(ev) {
     console.log("dragEnd");
+    dropZone.className = dropZone.className.replace(' drag-active', ''); 
     // Remove all of the drag data
     var dt = ev.dataTransfer;
     if (dt.items) {
@@ -80,7 +90,7 @@
           if (xhr.readyState == 4) {
               var data = JSON.parse(xhr.responseText);
               if (xhr.status == 200) {
-                  document.getElementById("solution").value = data.Body;
+                  document.getElementById("solution").value = data.Body.substr(1);
               } else {
                   document.getElementById("solution").value = data.Error;
               }

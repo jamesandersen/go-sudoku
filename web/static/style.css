@@ -33,14 +33,13 @@ h1, h2, h3 {
 
 .flex-row.puzzle {
     height: 100%;
-    flex: 1 50%;
+    flex: 1 45%;
     padding: 1rem;
-    padding-top: 2rem;
     position: relative;
 }
 
 .flex-row.acknowledgements {
-    flex: none;
+    flex: 0.5 auto;
     flex-direction: column;
     padding: 1rem;
     font-size: 10pt;
@@ -53,12 +52,10 @@ h1, h2, h3 {
   left: 0%;
   right:  0%;
   padding: 1rem;
-  /* padding-top: 2rem; */
 }
 
 #dropZone {
     background-color: rgba(141, 139, 158, 0.78);
-    /* border: 5px solid blue; */
     width: 100%;
     height: 100%;
     opacity: 0;
@@ -71,21 +68,18 @@ h1, h2, h3 {
     box-sizing: border-box;
     display: flex;
     flex-flow: column wrap;
-    /* flex-direction: column; */
-    /* flex-wrap: wrap; */
+    flex-wrap: none;
     justify-content: flex-start;
     align-items: center;
     color: white;
 }
 
-#dropZone:hover {
+#dropZone:hover, #dropZone.drag-active {
   opacity: 1;
 }
 
 #drag-icon, #sudoku-file-container {
     flex: 1 1 50%;
-    /* width: 100%; */
-    /* height: 100%; */
 }
 
 #sudoku-file-container {
@@ -137,8 +131,6 @@ h1, h2, h3 {
     right: 0;
     text-align: right;
     top: 0;
-
-    
 }
 
 img.puzzle {
@@ -151,7 +143,7 @@ img.puzzle {
 }
 
 .flex-row.solution {
-    flex: 1 50%;
+    flex: 1.3 50%;
     overflow: auto;
     text-align: center;
     background-color: #f6f6f6;
@@ -162,9 +154,32 @@ img.puzzle {
     font-family: monospace;
     margin-left: auto;
     margin-right: auto;
-    /* height: 190px; */
-    /* user-select: none; */
     font-size: 12pt;
+}
+
+#ack {
+    margin-bottom: 0.1rem;
+    margin-top: 0.2rem;
+}
+
+.acknowledgements ul {
+    margin-top: 0rem;
+    padding-left: 0;
+}
+
+.acknowledgements li {
+    list-style: none;
+    margin-bottom: 0.3rem;
+}
+
+.acknowledgements li a, .acknowledgements li a:visited {
+    font-weight: bold;
+    text-decoration: none;
+    color: blue;
+}
+
+.acknowledgements li a:hover {
+    text-decoration: underline;
 }
 
 .error {
@@ -182,6 +197,14 @@ img.github {
 
 /* Small screens */
 @media all and (max-width: 600px) {
+    .header h1 {
+        font-size: 20pt;
+    }
+
+    #drag-icon, #drag-label { display: none; }
+
+    #ack { text-align: center; }
+
   img.github {
     /* On small screens, we are no longer using row direction but column */
     display: none;
