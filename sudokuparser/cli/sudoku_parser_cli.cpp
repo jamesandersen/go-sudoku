@@ -48,6 +48,10 @@ int main(int argc, char *argv[])
                 }
 
                 delete[] buffer;
+
+                if (string(argv[3]) == "wait") {
+                    cv::waitKey(0);
+                }
           }
       }
 
