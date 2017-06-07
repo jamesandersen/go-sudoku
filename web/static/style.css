@@ -52,6 +52,8 @@ h1, h2, h3 {
   left: 0%;
   right:  0%;
   padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 #dropZone {
@@ -74,8 +76,13 @@ h1, h2, h3 {
     color: white;
 }
 
-#dropZone:hover, #dropZone.drag-active {
+#dropZone:hover, #dropZone.drag-active, #dropZone.init {
   opacity: 1;
+}
+
+#dropZone.init {
+    background-color: #F0F0F0;
+    color: black;
 }
 
 #drag-icon, #sudoku-file-container {
@@ -204,9 +211,80 @@ img.github {
     #drag-icon, #drag-label { display: none; }
 
     #ack { text-align: center; }
+    #solution { font-size: 10pt; }
 
   img.github {
     /* On small screens, we are no longer using row direction but column */
     display: none;
+  }
+}
+
+.flex-row.flex-row.solution .loader {
+    display: none;
+}
+
+.flex-row.flex-row.solution.loading .loader {
+    display: block;
+}
+.flex-row.flex-row.solution.loading #solution {
+    display: none;
+}
+
+.loader,
+.loader:before,
+.loader:after {
+  border-radius: 50%;
+  width: 2.5em;
+  height: 2.5em;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation: load7 1.8s infinite ease-in-out;
+  animation: load7 1.8s infinite ease-in-out;
+}
+.loader {
+  color: blue;
+  font-size: 10px;
+  margin: 80px auto;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+  /* background-color: gray; */
+}
+.loader:before,
+.loader:after {
+  content: '';
+  position: absolute;
+  top: 0;
+}
+.loader:before {
+  left: -3.5em;
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+.loader:after {
+  left: 3.5em;
+}
+@-webkit-keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
+  }
+}
+@keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
   }
 }

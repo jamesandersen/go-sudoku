@@ -2,12 +2,14 @@
 
   var sudokuFileInput;
   var dropZone;
+  var solutionRow;
 
   // Initialize handlers when DOM is loaded
   document.addEventListener("DOMContentLoaded", function() {
     // important DOM elements
     sudokuFileInput = document.getElementById("sudokuFile");
     dropZone = document.getElementById("dropZone");
+    solutionRow = document.getElementById("solution-row");
 
     // Wire up file input change handler
     sudokuFileInput.addEventListener("change", function(evt) {
@@ -79,6 +81,12 @@
       var xhr = new XMLHttpRequest();
       var fd = new FormData();
       var reader  = new FileReader();
+
+      dropZone.className = '';
+      if (solutionRow.className.indexOf(" loading") < 0) {
+        solutionRow.className += " loading";
+      }
+
       reader.addEventListener("load", function () {
         document.getElementById('puzzle-src').src = reader.result;
       }, false);
@@ -94,6 +102,8 @@
               } else {
                   document.getElementById("solution").value = data.Error;
               }
+
+              solutionRow.className = solutionRow.className.replace(" loading", "");
           }
       };
       fd.append('sudokuFile', file);
