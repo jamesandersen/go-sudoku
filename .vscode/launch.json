@@ -33,11 +33,13 @@
             "request": "launch",
             "program": "${workspaceRoot}/sudokuparser/sudokuparser",
             "args": [
-                "parse",
+                //"parse",
                 //"../samples/800wi.png",
-                "../samples/Sudoku2366easy.jpg"
-                //"train",
-                //"train_config.csv"
+                //"../samples/NewsprintSudoku.jpg",
+                //"wait"
+                //"../samples/Sudoku2366easy.jpg"
+                "train",
+                "train_config.csv"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/sudokuparser/",

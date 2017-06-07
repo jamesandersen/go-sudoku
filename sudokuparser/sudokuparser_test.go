@@ -13,6 +13,15 @@ func TestParseSudokuFromFile(t *testing.T) {
 	}
 }
 
+func TestParseNewsprintSudokuFromFile(t *testing.T) {
+	const sampleNewsprint = "2....61..1...92.8...7.....4.298......7..5..2......735.4.....9...8.41...7..36....5"
+	const sampleNewsprintFile = "../samples/NewsprintSudoku.jpg"
+
+	if sudokuString := ParseSudokuFromFile(sampleNewsprintFile); sudokuString != sampleNewsprint {
+		t.Error(sampleNewsprintFile + " not parsed as " + sampleNewsprint + ": \n" + sudokuString)
+	}
+}
+
 func TestTrainSudoku(t *testing.T) {
 	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "98.28" {
 		t.Error("Unexpected response from training Sudoku: " + sudokuString)
