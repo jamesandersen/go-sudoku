@@ -13,7 +13,7 @@ RNG rng(12345);
 using LineTestFn = function<bool(Rect&, Mat&)>;
 using ExpandRectFn = function<Rect(Rect&, Mat&)>;
 
-//#define VERBOSE
+#define VERBOSE
 
 namespace Sudoku {
 
@@ -21,18 +21,18 @@ namespace Sudoku {
     const int DIGIT_PADDING = 3;
 
     // Ignore any contour rect smaller than this on any side
-    const int MIN_DIGIT_PIXELS = 15;
+    const int MIN_DIGIT_PIXELS = 20;
 
     // Scale up puzzle images smaller than this
-    const int MIN_PUZZLE_SIZE = 250;
+    const int MIN_PUZZLE_SIZE = 325;
 
     // Scale down puzzle images larger than this
-    const int MAX_PUZZLE_SIZE = 800;
+    const int MAX_PUZZLE_SIZE = 900;
 
     // Resize digits to this size when exporting to train SVM
     const int EXPORT_DIGIT_SIZE = 28;
 
-    const float MIN_GRID_PCT = 0.6;
+    const float MIN_GRID_PCT = 0.3;
 
     const int CANNY_THRESHOLD = 65;
 
@@ -330,13 +330,6 @@ namespace Sudoku {
         Mat src;
         raw.copyTo(src);
 
-        // make sure image is a reasonable size
-        if(src.rows > MAX_PUZZLE_SIZE || src.cols > MAX_PUZZLE_SIZE) {
-            resize(src, src, Size(src.cols / 2, src.rows / 2), 0, 0, CV_INTER_AREA);
-        } else if (src.rows < MIN_PUZZLE_SIZE || src.cols < MIN_PUZZLE_SIZE) {
-            resize(src, src, Size(src.cols * 2, src.rows * 2), 0, 0, CV_INTER_CUBIC);
-        }
-
         //imshow("src: " + filename, src);
         // Transform source image to gray if it is not
         Mat gray;
@@ -351,6 +344,13 @@ namespace Sudoku {
 
         Mat grid = Mat::zeros( gray.size(), gray.type() );
         extractGrid(gray, grid);
+
+        // make sure image is a reasonable size
+        if(grid.rows > MAX_PUZZLE_SIZE || grid.cols > MAX_PUZZLE_SIZE) {
+            resize(grid, grid, Size(grid.cols / 2, grid.rows / 2), 0, 0, CV_INTER_AREA);
+        } else if (grid.rows < MIN_PUZZLE_SIZE || grid.cols < MIN_PUZZLE_SIZE) {
+            resize(grid, grid, Size(grid.cols * 2, grid.rows * 2), 0, 0, CV_INTER_CUBIC);
+        }
         
         // Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
         Mat bw;

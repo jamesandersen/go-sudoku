@@ -23,7 +23,7 @@ func TestParseNewsprintSudokuFromFile(t *testing.T) {
 }
 
 func TestTrainSudoku(t *testing.T) {
-	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "98.28" {
+	if sudokuString := TrainSudoku("train_config.csv"); sudokuString != "98.94" {
 		t.Error("Unexpected response from training Sudoku: " + sudokuString)
 	}
 }
