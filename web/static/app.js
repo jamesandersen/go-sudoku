@@ -3,6 +3,7 @@
   var sudokuFileInput;
   var dropZone;
   var solutionRow;
+  var solutionGrid;
 
   // Initialize handlers when DOM is loaded
   document.addEventListener("DOMContentLoaded", function() {
@@ -10,6 +11,7 @@
     sudokuFileInput = document.getElementById("sudokuFile");
     dropZone = document.getElementById("dropZone");
     solutionRow = document.getElementById("solution-row");
+    solutionGrid = document.getElementById("solution-grid");
 
     // Wire up file input change handler
     sudokuFileInput.addEventListener("change", function(evt) {
@@ -98,7 +100,22 @@
           if (xhr.readyState == 4) {
               var data = JSON.parse(xhr.responseText);
               if (xhr.status == 200) {
-                  document.getElementById("solution").value = data.Body.substr(1);
+
+                  // insert the solution in the DOM
+                  while (solutionGrid.lastChild) { solutionGrid.removeChild(solutionGrid.lastChild); }
+                  var i = 0;
+                  for (var cell in data.Values) {
+                    var val = data.Values[cell];
+                    var cellDiv = document.createElement("div");
+                    cellDiv.appendChild(document.createTextNode(val.value));
+                    cellDiv.className = "solution-cell";
+                    solutionGrid.appendChild(cellDiv);
+                    
+                    //if (i < 9) { cellDiv.className += " top"; }
+
+                    i++;
+                  }
+
               } else {
                   document.getElementById("solution").value = data.Error;
               }

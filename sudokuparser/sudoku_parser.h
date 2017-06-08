@@ -12,7 +12,7 @@ extern "C" {
 
     extern const char *SVM_MODEL_VAR;
 
-    const char* ParseSudoku(const char * encodedImageData, int length, bool saveOutput, char * parsed);
+    void ParseSudoku(const char * encodedImageData, int length, float * gridPoints, bool saveOutput, char * parsed);
 
     const char* TrainSudoku(const char * trainConfigFile);
 

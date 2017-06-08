@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
                 is.close();
 
                 if (fileReadSuccessfully) {
-                    string parsed = internalParseSudoku(buffer, length, true);
+                    vector<float> gridPoints;
+                    string parsed = internalParseSudoku(buffer, length, gridPoints, true);
                     cout << parsed << endl;
                 }
 

@@ -28,10 +28,15 @@ import (
 	"unsafe"
 )
 
+// Point2d represents a point in 2d space
+type Point2d struct {
+	X, Y int
+}
+
 var svmModelPath string
 
-// Parse a Sudoku puzzle using a file path to a Sudoku image
-func ParseSudokuFromFile(filename string) string {
+// ParseSudokuFromFile parses a Sudoku puzzle using a file path to a Sudoku image
+func ParseSudokuFromFile(filename string) (string, []Point2d) {
 	if !path.IsAbs(filename) {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -47,8 +52,8 @@ func ParseSudokuFromFile(filename string) string {
 	return ParseSudokuFromByteArray(data)
 }
 
-// Parse a Sudoku puzzle from an image byte array
-func ParseSudokuFromByteArray(data []byte) string {
+// ParseSudokuFromByteArray parses a Sudoku puzzle from an image byte array
+func ParseSudokuFromByteArray(data []byte) (string, []Point2d) {
 	if svmModelPath == "" {
 		svmModelPath = setupSVMModel()
 		svmEnvVar := C.GoString(C.SVM_MODEL_VAR)
@@ -66,10 +71,23 @@ func ParseSudokuFromByteArray(data []byte) string {
 	p := C.CBytes(data)
 	defer C.free(unsafe.Pointer(p))
 
-	C.ParseSudoku((*C.char)(p), C.int(len(data)), true, parsed)
+	// float32 is standard type compatible with C
+	gridCoords := []float32{-1, -1, -1, -1, -1, -1, -1, -1}
+
+	C.ParseSudoku((*C.char)(p), C.int(len(data)), (*C.float)(unsafe.Pointer(&gridCoords[0])), true, parsed)
+
+	coords := []Point2d{}
+	for i := 0; i < 4; i++ {
+		x := i * 2
+		y := (i * 2) + 1
+		if gridCoords[x] > -1 && gridCoords[y] > -1 {
+			fmt.Print(fmt.Sprintf("Grid coord (%f, %f)\n", gridCoords[i*2], gridCoords[(i*2)+1]))
+			coords = append(coords, Point2d{X: int(gridCoords[x]), Y: int(gridCoords[y])})
+		}
+	}
 	goString := C.GoString(parsed)
 
-	return goString
+	return goString, coords
 }
 
 func setupSVMModel() string {

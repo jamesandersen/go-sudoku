@@ -15,6 +15,14 @@ import (
 // SudokuMode represents a variant of sudoku
 type SudokuMode int
 
+// CellSource represent the source of the value
+type CellSource int
+
+type CellValue struct {
+	Value  string     `json:"value"`
+	Source CellSource `json:"source"`
+}
+
 const (
 	// STANDARD Each block, row and column should contain digits 1-9
 	STANDARD SudokuMode = iota
@@ -24,16 +32,24 @@ const (
 )
 
 const (
-	// Row labels
+	// PARSED the value was detected in the image
+	PARSED CellSource = iota
+
+	// RESOLVED the value was discovered by solving the puzzle
+	RESOLVED CellSource = iota
+)
+
+const (
+	// ROWS contains row labels
 	ROWS = "ABCDEFGHI"
 
-	// Column labels
+	// COLS contains column labels
 	COLS = "123456789"
 )
 
 // A SudokuBoard represents a sudoku board
 type SudokuBoard struct {
-	values map[string]string
+	values map[string]CellValue
 
 	rowUnits  [][]string
 	colUnits  [][]string
@@ -48,7 +64,7 @@ type SudokuBoard struct {
 // BOXES is an array of all possible cells in standard sudoku puzzle
 var BOXES = cross(ROWS, COLS)
 
-// Init - initializes a board type based on the mode
+// NewSudoku initializes a board type based on the mode
 func NewSudoku(rawSudoku string, mode SudokuMode) *SudokuBoard {
 	b := new(SudokuBoard)
 
@@ -56,12 +72,12 @@ func NewSudoku(rawSudoku string, mode SudokuMode) *SudokuBoard {
 		panic("raw Sudoku strings should be exactly 81 characters")
 	}
 
-	b.values = make(map[string]string)
+	b.values = make(map[string]CellValue)
 	for i, val := range rawSudoku {
 		if val == '.' {
-			b.values[BOXES[i]] = "123456789"
+			b.values[BOXES[i]] = CellValue{Value: "123456789", Source: RESOLVED}
 		} else {
-			b.values[BOXES[i]] = string(val)
+			b.values[BOXES[i]] = CellValue{Value: string(val), Source: PARSED}
 		}
 	}
 
@@ -168,18 +184,18 @@ func (board *SudokuBoard) Search() (*SudokuBoard, bool) {
 	minLength := 10
 	var minKey string
 	for key, val := range board.values {
-		cellLen := len(val)
+		cellLen := len(val.Value)
 		if cellLen > 1 && cellLen < minLength {
 			minKey = key
-			minLength = len(val)
+			minLength = len(val.Value)
 		}
 	}
 
 	// recurse to search for solution
 	fmt.Print(fmt.Sprintf("Select cell %s with possible values '%s' for recursion\n", minKey, board.values[minKey]))
-	for _, digit := range board.values[minKey] {
+	for _, digit := range board.values[minKey].Value {
 		copy := board.Copy()
-		copy.values[minKey] = string(digit)
+		copy.values[minKey] = CellValue{Value: string(digit), Source: RESOLVED}
 		fmt.Print(fmt.Sprintf("Recursing with %d values solved and picking %s as value for %s\n", solved, string(digit), minKey))
 		resultBoard, success := copy.Search()
 		if success {
@@ -211,9 +227,9 @@ func (board *SudokuBoard) ReducePuzzle() bool {
 // Eliminate removes solved values from peer boxes within each unit
 func (board *SudokuBoard) Eliminate() {
 	for cell, val := range board.values {
-		if len(val) == 1 {
+		if len(val.Value) == 1 {
 			for _, peer := range board.peersByCell[cell] {
-				newVal := strings.Replace(board.values[peer], val, "", 1)
+				newVal := strings.Replace(board.values[peer].Value, val.Value, "", 1)
 				/*if newVal == "" {
 					panic(fmt.Sprintf("You may have an invalid Sudoku puzzle\nelimination of %s from %s leaves no valid options", val, cell))
 				}*/
@@ -231,7 +247,7 @@ func (board *SudokuBoard) EliminateOnlyChoice() {
 		for _, num := range "123456789" {
 			matches := make([]string, 0)
 			for _, cell := range unit {
-				for _, possibleVal := range board.values[cell] {
+				for _, possibleVal := range board.values[cell].Value {
 					if num == possibleVal {
 						// the digit we're testing matches a cell in the unit
 						matches = append(matches, cell)
@@ -254,8 +270,8 @@ func (board *SudokuBoard) EliminateNakedTwins() bool {
 
 // AssignValue assigns a solution to a cell in the SudokuBoard
 func (board *SudokuBoard) AssignValue(cell string, solution string) {
-	if board.values[cell] != solution {
-		board.values[cell] = solution
+	if board.values[cell].Value != solution {
+		board.values[cell] = CellValue{Value: solution, Source: RESOLVED}
 	}
 }
 
@@ -263,7 +279,7 @@ func (board *SudokuBoard) AssignValue(cell string, solution string) {
 func (board *SudokuBoard) CountSolved() int {
 	solved := 0
 	for _, val := range board.values {
-		if len(val) == 1 {
+		if len(val.Value) == 1 {
 			solved++
 		}
 	}
@@ -274,7 +290,7 @@ func (board *SudokuBoard) CountSolved() int {
 // Unsolvable determines if the puzzle is solvable
 func (board *SudokuBoard) Unsolvable() bool {
 	for _, val := range board.values {
-		if len(val) == 0 {
+		if len(val.Value) == 0 {
 			return true
 		}
 	}
@@ -287,7 +303,7 @@ func (board *SudokuBoard) Copy() *SudokuBoard {
 	boardCopy := new(SudokuBoard)
 
 	// element copy values
-	boardCopy.values = make(map[string]string)
+	boardCopy.values = make(map[string]CellValue)
 	for key, val := range board.values {
 		boardCopy.values[key] = val
 	}
@@ -323,8 +339,8 @@ func (board *SudokuBoard) ToString() string {
 		}
 
 		cellValue := board.values[cell]
-		if len(cellValue) == 1 {
-			str += cellValue + " "
+		if len(cellValue.Value) == 1 {
+			str += cellValue.Value + " "
 		} else {
 			str += ". "
 		}
@@ -353,9 +369,15 @@ func main() {
 		http.HandleFunc("/", sudokuFormHandler)
 		http.ListenAndServe(":8080", nil)
 	} else if mode == "cli" {
-		parsed := sudokuparser.ParseSudokuFromFile(filename)
+		parsed, points := sudokuparser.ParseSudokuFromFile(filename)
 
 		fmt.Println("Parsed sudoku: " + parsed)
+		if len(points) == 4 {
+			fmt.Print(fmt.Sprintf("TopLeft (%c, %c)\n", points[0].X, points[0].Y))
+			fmt.Print(fmt.Sprintf("TopRight (%c, %c)\n", points[1].X, points[1].Y))
+			fmt.Print(fmt.Sprintf("BottomRight (%c, %c)\n", points[2].X, points[2].Y))
+			fmt.Print(fmt.Sprintf("BottomLeft (%c, %c)\n", points[3].X, points[3].Y))
+		}
 
 		board := NewSudoku(parsed, STANDARD)
 		fmt.Print("Attempting to solve Sudoku...\n")

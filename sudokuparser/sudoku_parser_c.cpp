@@ -9,13 +9,12 @@
 
 const char *SVM_MODEL_VAR = SVM_MODEL_ENV_VAR_NAME;
 
-const char* ParseSudoku(const char * encodedImageData, int length, bool saveOutput, char * parsed) {
-    string result = internalParseSudoku(encodedImageData, length, saveOutput);
+void ParseSudoku(const char * encodedImageData, int length, float * gridPoints, bool saveOutput, char * parsed) {
+    //float* gridPoints = (float*)malloc(8 * sizeof(float));
+    string result = internalParseSudoku(encodedImageData, length, gridPoints, saveOutput);
     //cout << "Testing string issue: result: " << result << endl << "c_str(): " << result.c_str() << endl;
     cout << "Returning  parsed result: " << result << endl;
     strncpy(parsed, result.c_str(), 81);
-    
-    return parsed;
 }
 
 const char* TrainSudoku(const char * trainConfigFile) {

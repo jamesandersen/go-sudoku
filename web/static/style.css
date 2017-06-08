@@ -155,14 +155,35 @@ img.puzzle {
     text-align: center;
     background-color: #f6f6f6;
     padding: 1rem;
+    flex-basis: 75%;
 }
 
-#solution {
-    font-family: monospace;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 12pt;
+#solution-grid {
+    display: flex;
+    flex-flow: row wrap;
+    /* height: 100%; */
+    flex-basis: auto;
 }
+
+.solution-cell {
+    color: blue;
+    flex-basis: 11.1111%; /* 1/9 */
+    border: 1px solid gray;
+    box-sizing: border-box;
+    display:flex;
+    align-items:center;
+    justify-content: center;
+}
+.solution-cell:before {
+    content:'';
+    float:left;
+    padding-top:100%;
+}
+
+.solution-cell.top { border-top-width: 2px; }
+.solution-cell.left { border-left-width: 2px; }
+.solution-cell.right { border-right-width: 2px; }
+.solution-cell.bottom { border-bottom-width: 2px; }
 
 #ack {
     margin-bottom: 0.1rem;
@@ -211,7 +232,6 @@ img.github {
     #drag-icon, #drag-label { display: none; }
 
     #ack { text-align: center; }
-    #solution { font-size: 10pt; }
 
   img.github {
     /* On small screens, we are no longer using row direction but column */
@@ -230,6 +250,7 @@ img.github {
     display: none;
 }
 
+/* https://projects.lukehaas.me/css-loaders/ */
 .loader,
 .loader:before,
 .loader:after {
