@@ -109,7 +109,10 @@
               if (xhr.status == 200) {
                 setSolution(data);
               } else {
-                  document.getElementById("solution").value = data.Error;
+                var errDiv = document.createElement("div");
+                errDiv.className= "error";
+                errDiv.appendChild(document.createTextNode(data.Error));
+                solutionGrid.appendChild(errDiv);
               }
 
               puzzleRow.className = puzzleRow.className.replace(" loading", "");

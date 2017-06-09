@@ -176,7 +176,7 @@ h1, h2, h3 {
 }
 
 .solution-cell {
-    color: #dedede;
+    color: #0c74b5;
     flex-basis: 11.1111%; /* 1/9 */
     border: 1px solid #e42525;
     box-sizing: border-box;
@@ -226,6 +226,9 @@ h1, h2, h3 {
 .error {
     color: red;
     font-weight: bold;
+    text-align: center;
+    display: flex;
+    margin: 2rem;
 }
 
 img.github {

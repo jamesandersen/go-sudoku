@@ -22,10 +22,7 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
     Mat cleanedBoard;
     vector<float> gPoints;
     vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints);
-    if (gPoints.size() == 8) {
-        //gridPoints = &gPoints[0];
-        copy(gPoints.begin(), gPoints.end(), gridPoints);
-    }
+
 
     map<string, int> digitMap;
 
@@ -33,6 +30,16 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
         // get the bounding box of all digits
         Rect allDigits = digits[0];
         for( size_t i = 0; i< digits.size(); i++ ) { allDigits |= digits[i]; }
+        if (gPoints.size() == 0) {
+            gridPoints[0] = allDigits.x;
+            gridPoints[1] = allDigits.y;
+            gridPoints[2] = allDigits.x + allDigits.width;
+            gridPoints[3] = allDigits.y;
+            gridPoints[4] = allDigits.br().x;
+            gridPoints[5] = allDigits.br().y;
+            gridPoints[6] = allDigits.x;
+            gridPoints[7] = allDigits.y + allDigits.height;
+        }
 
         double cellWidth = allDigits.width / 9.0;
         double cellHeight = allDigits.height / 9.0;
@@ -86,6 +93,11 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
     }
     
     cout << length << " byte puzzle parsed as " << puzzle << endl;
+
+    // set the grid corners
+    if (gPoints.size() == 8) {
+        copy(gPoints.begin(), gPoints.end(), gridPoints);
+    }
 
     return puzzle;
 }
