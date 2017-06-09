@@ -15,18 +15,31 @@ using namespace cv;
 
 const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
 
-const string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
+const string internalParseSudoku(const char * encImgData, int length, float * gridPoints, bool saveOutput) {
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
     Mat cleanedBoard;
-    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard);
+    vector<float> gPoints;
+    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints);
+
+
     map<string, int> digitMap;
 
     if (digits.size() > 0) {
         // get the bounding box of all digits
         Rect allDigits = digits[0];
         for( size_t i = 0; i< digits.size(); i++ ) { allDigits |= digits[i]; }
+        if (gPoints.size() == 0) {
+            gridPoints[0] = allDigits.x;
+            gridPoints[1] = allDigits.y;
+            gridPoints[2] = allDigits.x + allDigits.width;
+            gridPoints[3] = allDigits.y;
+            gridPoints[4] = allDigits.br().x;
+            gridPoints[5] = allDigits.br().y;
+            gridPoints[6] = allDigits.x;
+            gridPoints[7] = allDigits.y + allDigits.height;
+        }
 
         double cellWidth = allDigits.width / 9.0;
         double cellHeight = allDigits.height / 9.0;
@@ -80,6 +93,11 @@ const string internalParseSudoku(const char * encImgData, int length, bool saveO
     }
     
     cout << length << " byte puzzle parsed as " << puzzle << endl;
+
+    // set the grid corners
+    if (gPoints.size() == 8) {
+        copy(gPoints.begin(), gPoints.end(), gridPoints);
+    }
 
     return puzzle;
 }
@@ -172,7 +190,8 @@ string internalTrainSudoku(const char * trainConfigFile) {
             // read sample image and find digits
             auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
             Mat cleanedBoard;
-            auto digits = FindDigitRects(sudokuBoard, cleanedBoard);
+            vector<float> gridPoints; // not used for training
+            auto digits = FindDigitRects(sudokuBoard, cleanedBoard, gridPoints);
 
             // extract digit images with labels
             auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);

@@ -83,7 +83,7 @@ namespace Sudoku {
     /**
     * Attempt to extract and warp sudoku grid
     */
-    void extractGrid(const Mat& img, Mat& dst) {
+    void extractGrid(const Mat& img, Mat& dst, vector<float>& gridPoints) {
         Mat src_gray;
         blur( img, src_gray, Size(3,3) );
         Mat canny_output;
@@ -146,11 +146,15 @@ namespace Sudoku {
             Point2f flatCorners[4];
             Size sz = findCorners(largestContour, corners);
 
+            
             // draw contour quadrangle
             for( int j = 0; j < 4; j++ ) {
+                gridPoints.push_back(corners[j].x);
+                gridPoints.push_back(corners[j].y);
+                #ifdef VERBOSE
                 line( drawing, corners[j], corners[(j+1)%4], Scalar(0,0,255), 2, 8 );
+                #endif
             }
-
             #ifdef VERBOSE
             // draw largest 
             int lenContour = largestContour.size();
@@ -322,7 +326,7 @@ namespace Sudoku {
     /**
     * Detect Sudoku board and digits in the "raw" Mat
     */
-    vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned) {
+    vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned, vector<float>& gridPoints) {
         // Check if image is loaded fine
         if(!raw.data)
             cerr << "Problem loading image!!!" << endl;
@@ -343,7 +347,7 @@ namespace Sudoku {
         }
 
         Mat grid = Mat::zeros( gray.size(), gray.type() );
-        extractGrid(gray, grid);
+        extractGrid(gray, grid, gridPoints);
 
         // make sure image is a reasonable size
         if(grid.rows > MAX_PUZZLE_SIZE || grid.cols > MAX_PUZZLE_SIZE) {

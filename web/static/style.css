@@ -13,6 +13,8 @@ h1, h2, h3 {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    /* justify-content: center; */
+    position: relative;
 }
 
 .flex-row { display: flex; }
@@ -32,8 +34,7 @@ h1, h2, h3 {
 }
 
 .flex-row.puzzle {
-    height: 100%;
-    flex: 1 45%;
+    flex: 1 70%;
     padding: 1rem;
     position: relative;
 }
@@ -54,6 +55,7 @@ h1, h2, h3 {
   padding: 1rem;
   max-width: 600px;
   margin: 0 auto;
+  z-index: 100;
 }
 
 #dropZone {
@@ -140,29 +142,61 @@ h1, h2, h3 {
     top: 0;
 }
 
-img.puzzle {
-    max-width: 400;
-    max-height: 400px;
-    object-fit: contain;
+#puzzle-container {
     width: 100%;
     height: 100%;
     border: 0;
+    position: relative;
+}
+
+#puzzle-container img, #solution-grid {
+    width: 100%;
+    height: 100%;
+}
+
+#puzzle-annotation, #solution-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .flex-row.solution {
-    flex: 1.3 50%;
     overflow: auto;
     text-align: center;
     background-color: #f6f6f6;
     padding: 1rem;
 }
 
-#solution {
-    font-family: monospace;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 12pt;
+#solution-grid{
+    display: flex;
+    flex-flow: row wrap;
+    flex-basis: auto;
+    transform-origin: 0;
+    max-height: 100%;
 }
+
+.solution-cell {
+    color: #0c74b5;
+    flex-basis: 11.1111%; /* 1/9 */
+    border: 1px solid #e42525;
+    box-sizing: border-box;
+    display:flex;
+    align-items:center;
+    justify-content: center;
+    font-size: 1.8rem;
+    height: 11.111%;
+    text-shadow: rgba(99, 99, 99, 0.58) 1px 1px;
+}
+.solution-cell:before {
+    content:'';
+    float:left;
+    padding-top:100%;
+}
+.solution-cell.parsed { color: black; }
+.solution-cell.top { border-top-width: 2px; }
+.solution-cell.left { border-left-width: 2px; }
+.solution-cell.right { border-right-width: 2px; }
+.solution-cell.bottom { border-bottom-width: 2px; }
 
 #ack {
     margin-bottom: 0.1rem;
@@ -192,6 +226,9 @@ img.puzzle {
 .error {
     color: red;
     font-weight: bold;
+    text-align: center;
+    display: flex;
+    margin: 2rem;
 }
 
 img.github {
@@ -206,12 +243,12 @@ img.github {
 @media all and (max-width: 600px) {
     .header h1 {
         font-size: 20pt;
+        text-shadow: lightgray 1px 1px;
     }
 
     #drag-icon, #drag-label { display: none; }
 
     #ack { text-align: center; }
-    #solution { font-size: 10pt; }
 
   img.github {
     /* On small screens, we are no longer using row direction but column */
@@ -219,17 +256,18 @@ img.github {
   }
 }
 
-.flex-row.flex-row.solution .loader {
+.flex-row.puzzle .loader {
     display: none;
 }
 
-.flex-row.flex-row.solution.loading .loader {
+.flex-row.puzzle.loading .loader {
     display: block;
 }
-.flex-row.flex-row.solution.loading #solution {
+.flex-row.puzzle.loading #puzzle-annotation {
     display: none;
 }
 
+/* https://projects.lukehaas.me/css-loaders/ */
 .loader,
 .loader:before,
 .loader:after {
@@ -245,14 +283,17 @@ img.github {
   color: blue;
   font-size: 10px;
   margin: 80px auto;
-  position: relative;
+  position: absolute;
   text-indent: -9999em;
   -webkit-transform: translateZ(0);
   -ms-transform: translateZ(0);
   transform: translateZ(0);
   -webkit-animation-delay: -0.16s;
   animation-delay: -0.16s;
-  /* background-color: gray; */
+  background-color: gray;
+  top: 40%;
+  left: 50%;
+  margin: 0 auto;
 }
 .loader:before,
 .loader:after {

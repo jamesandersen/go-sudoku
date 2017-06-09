@@ -8,27 +8,27 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/jamesandersen/gosudoku/sudokuparser"
 )
 
-type Page struct {
+type page struct {
 	Title   string
 	Image   template.URL
 	Success bool
 	Body    string
+	Values  map[string]CellValue
+	Points  []sudokuparser.Point2d
 	Error   string
 }
 
 func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		p := &Page{Title: "TestPage", Body: "--Solution goes here--."}
+		p := &page{Title: "TestPage", Body: "--Solution goes here--."}
 		t, _ := template.ParseFiles("web/sudoku.html")
 		t.Execute(w, p)
 	case "POST":
-		// Create a new record.
 		solveHandler(w, r)
 	default:
 		// Give an error message.
@@ -37,13 +37,13 @@ func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func solveHandler(w http.ResponseWriter, r *http.Request) {
-	var p *Page
+	var p *page
 	t, _ := template.ParseFiles("web/sudoku.html")
 
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("Recovering from panic in solveHandler...", err)
-			p = &Page{Title: "Error", Error: fmt.Sprintf("%v", err), Success: false}
+			p = &page{Title: "Error", Error: fmt.Sprintf("%v", err), Success: false}
 			if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 				js, jerr := json.Marshal(p)
 				if jerr != nil {
@@ -56,24 +56,21 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				t.Execute(w, p)
 			}
-
 		}
 	}()
 
 	var Buf bytes.Buffer
-	// in your case file would be fileupload
 	file, header, err := r.FormFile("sudokuFile")
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
-	name := strings.Split(header.Filename, ".")
-	fmt.Printf("File name %s\n", name[0])
+	fmt.Printf("File name %s\n", header.Filename)
 	// Copy the file data to my buffer
 	io.Copy(&Buf, file)
 
 	bytes := Buf.Bytes()
-	parsed := sudokuparser.ParseSudokuFromByteArray(bytes)
+	parsed, points := sudokuparser.ParseSudokuFromByteArray(bytes)
 
 	fmt.Println("Parsed sudoku: " + parsed)
 
@@ -82,15 +79,11 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 	board.Print()
 	finalBoard, success := board.Solve()
 
-	// I reset the buffer in case I want to use it again
-	// reduces memory allocations in more intense projects
-	Buf.Reset()
-
 	if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 		if success {
-			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Error: ""}
+			p = &page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Values: finalBoard.values, Points: points, Error: ""}
 		} else {
-			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
+			p = &page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
 		}
 		js, err := json.Marshal(p)
 		if err != nil {
@@ -103,9 +96,9 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
 		if success {
-			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: true}
+			p = &page{Title: "Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: true}
 		} else {
-			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: false}
+			p = &page{Title: "Not Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: false}
 		}
 		t.Execute(w, p)
 	}
