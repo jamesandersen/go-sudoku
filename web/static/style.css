@@ -2,6 +2,7 @@ html, body {
     height: 100%;
     margin: 0px;
     font-family: 'Roboto', sans-serif;
+    background-color: #e3e3e3;
 }
 
 h1, h2, h3 {
@@ -13,16 +14,16 @@ h1, h2, h3 {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    /* justify-content: center; */
     position: relative;
+    width: 100%;
 }
 
-.flex-row { display: flex; }
+.flex-row { display: flex;}
 
 .header {
     height: 50px;
     flex: 0 50px;
-    background: blue;
+    background: #89bdd3;
     color: white;
     box-shadow: -1px 3px 7px 2px rgba(0, 0, 0, 0.2);
     z-index: 100;
@@ -34,16 +35,42 @@ h1, h2, h3 {
 }
 
 .flex-row.puzzle {
-    flex: 1 70%;
+    flex: 0 0 70%;
     padding: 1rem;
     position: relative;
+    max-height: 70vmin;
 }
 
-.flex-row.acknowledgements {
-    flex: 0.5 auto;
-    flex-direction: column;
-    padding: 1rem;
+.acknowledgements {
+    padding: 1rem 2rem;
     font-size: 10pt;
+    position: absolute;
+    z-index: 109;
+    top: 100%;
+    transition: all 0.7s;
+    background: #89bdd3;
+    margin: -4rem auto 0 auto;
+    min-height: 75vh;
+    right: 10vw;
+    left: 10vw;
+    border-radius: 10px 10px 0 0;
+}
+
+.acknowledgements.up {
+    top: 30%;
+}
+
+.acknowledgements .arrow {
+    transform-origin: 50% 50%;
+    transition: transform 0.7s;
+    display: inline-block;
+    color: white;
+    text-shadow: rgba(0, 0, 0, 0.44) 2px 2px;
+}
+
+.acknowledgements.up .arrow {
+    transform: rotate(180deg);
+    text-shadow: rgba(0, 0, 0, 0.44) -2px -2px;
 }
 
 #drop-container {
@@ -56,6 +83,7 @@ h1, h2, h3 {
   max-width: 600px;
   margin: 0 auto;
   z-index: 100;
+  /* width: 100%; */
 }
 
 #dropZone {
@@ -89,6 +117,9 @@ h1, h2, h3 {
 
 #drag-icon, #sudoku-file-container {
     flex: 1 1 50%;
+    justify-content: center;
+    flex-direction: column;
+    display: flex;
 }
 
 #sudoku-file-container {
@@ -98,8 +129,8 @@ h1, h2, h3 {
 }
 
 #sudoku-file-container div {
-    margin-top: 30%;
-    margin-bottom: 1rem;
+    /* margin-top: 30%; */
+    /* margin-bottom: 1rem; */
     padding: 0.5rem;
     transition: all 0.5s;
     background-color: #4d90fe;
@@ -111,6 +142,8 @@ h1, h2, h3 {
     border: 1px solid #3079ed;
     color: #fff;
     cursor: pointer;
+    display: flex;
+    flex: 0 0 auto;
 }
 
 #sudoku-file-container div:hover {
@@ -143,10 +176,12 @@ h1, h2, h3 {
 }
 
 #puzzle-container {
-    width: 100%;
+    /* width: 100%; */
     height: 100%;
     border: 0;
     position: relative;
+    margin: 0 auto;
+    /* max-width: 70vw; */
 }
 
 #puzzle-container img, #solution-grid {
@@ -176,16 +211,16 @@ h1, h2, h3 {
 }
 
 .solution-cell {
-    color: #0c74b5;
+    color: #3dd8cc;
     flex-basis: 11.1111%; /* 1/9 */
-    border: 1px solid #e42525;
+    border: 1px solid #9ad3de;
     box-sizing: border-box;
     display:flex;
     align-items:center;
     justify-content: center;
     font-size: 1.8rem;
     height: 11.111%;
-    text-shadow: rgba(99, 99, 99, 0.58) 1px 1px;
+    text-shadow: rgba(99, 99, 99, 0.74) 1px 1px;
 }
 .solution-cell:before {
     content:'';
@@ -198,9 +233,30 @@ h1, h2, h3 {
 .solution-cell.right { border-right-width: 2px; }
 .solution-cell.bottom { border-bottom-width: 2px; }
 
+.flex-row.samples {
+    flex: 1 20vh;
+    display: flex;
+    justify-content: space-around;
+}
+
+.sample {
+    border: 4px solid #9ad3de;
+    width: 20vmin;
+    height: 20vmin;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.sample.s1 { background-image: url(/static/sample1.jpg); }
+.sample.s2 { background-image: url(/static/sample2.jpg); }
+.sample.s3 { background-image: url(/static/sample3.jpg); }
+
 #ack {
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.8rem;
     margin-top: 0.2rem;
+    line-height: 2rem;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 .acknowledgements ul {
@@ -243,12 +299,12 @@ img.github {
 @media all and (max-width: 600px) {
     .header h1 {
         font-size: 20pt;
-        text-shadow: lightgray 1px 1px;
+        text-shadow: #383737 1px 2px;
     }
 
     #drag-icon, #drag-label { display: none; }
 
-    #ack { text-align: center; }
+    #ack {text-align: center;font-size: 1.5rem;}
 
   img.github {
     /* On small screens, we are no longer using row direction but column */
@@ -328,4 +384,3 @@ img.github {
   40% {
     box-shadow: 0 2.5em 0 0;
   }
-}

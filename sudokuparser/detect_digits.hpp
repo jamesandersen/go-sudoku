@@ -9,7 +9,7 @@ namespace Sudoku {
     const int EXPORT_DIGIT_SIZE = 28;
 
     void extractDigits(char* file);
-    std::vector<cv::Rect> FindDigitRects(const cv::Mat& img, cv::Mat& cleaned, std::vector<float>& gridPoints);
+    std::vector<cv::Rect> FindDigitRects(const cv::Mat& img, cv::Mat& cleaned, std::vector<float>& gridPoints, float &scale);
 }
 
 #endif

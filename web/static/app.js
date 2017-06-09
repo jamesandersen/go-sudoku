@@ -1,21 +1,23 @@
 (function(){
-
-  var sudokuFileInput;
-  var dropZone;
-  var puzzleRow;
-  var solutionGrid;
-  var puzzleImg;
-  var puzzleAnnotation;
+  var sudokuFileInput,
+      dropZone,
+      puzzleRow,
+      solutionGrid,
+      puzzleImg,
+      puzzleAnnotation,
+      ack,
+      byId = document.getElementById.bind(document);
 
   // Initialize handlers when DOM is loaded
   document.addEventListener("DOMContentLoaded", function() {
     // important DOM elements
-    sudokuFileInput = document.getElementById("sudokuFile");
-    dropZone = document.getElementById("dropZone");
-    puzzleRow = document.getElementById("puzzle-row");
-    solutionGrid = document.getElementById("solution-grid");
-    puzzleImg = document.getElementById('puzzle-src');
-    puzzleAnnotation = document.getElementById('puzzle-annotation');
+    sudokuFileInput = byId("sudokuFile");
+    dropZone = byId("dropZone");
+    puzzleRow = byId("puzzle-row");
+    solutionGrid = byId("solution-grid");
+    puzzleImg = byId('puzzle-src');
+    puzzleAnnotation = byId('puzzle-annotation');
+    ack = byId('ack');
 
     // Wire up file input change handler
     sudokuFileInput.addEventListener("change", function(evt) {
@@ -29,6 +31,20 @@
     dropZone.addEventListener("dragenter", dragenter_handler);
     dropZone.addEventListener("dragover", dragover_handler);
     dropZone.addEventListener("dragend", dragend_handler);
+
+    var samples = document.getElementsByClassName('sample');
+    for (var i = 0; i <samples.length; i++) {
+      samples[i].addEventListener("click", function(ev) {
+        getSample(this.dataset.imgUrl);
+      })
+    }
+
+    ack.addEventListener("click", function(ev) {
+      var row = byId("ack-row");
+      row.className = row.className.indexOf(" up") >= 0
+        ? row.className.replace(" up", "")
+        : row.className + " up";
+    });
   });
 
   function drop_handler(ev) {
@@ -82,6 +98,24 @@
     }
   }
 
+  function getSample(fileUrl) {
+    console.log(fileUrl);
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'blob';
+    xhr.open("GET", fileUrl, true);
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200  || event.target.status == 0) {
+              sendFile(this.response);
+            } else {
+              console.error("Failed to load sample")
+            }
+        }
+    };
+    xhr.send();
+  }
+
   function sendFile(file) {
       var uri = "/";
       var xhr = new XMLHttpRequest();
@@ -106,12 +140,12 @@
       xhr.onreadystatechange = function() {
           if (xhr.readyState == 4) {
               var data = JSON.parse(xhr.responseText);
-              if (xhr.status == 200) {
+              if (xhr.status == 200 && data.Success) {
                 setSolution(data);
               } else {
                 var errDiv = document.createElement("div");
                 errDiv.className= "error";
-                errDiv.appendChild(document.createTextNode(data.Error));
+                errDiv.appendChild(document.createTextNode(data.Error || data.Title));
                 solutionGrid.appendChild(errDiv);
               }
 
@@ -141,20 +175,22 @@
       i++;
     }
 
-    puzzleAnnotation.src = getImageCanvas(data.Points);
-    var transform = new PerspectiveTransform(
-      solutionGrid, 
-      solutionGrid.clientWidth, 
-      solutionGrid.clientHeight, 
-      true);
+    if (data.Points) {
+      puzzleAnnotation.src = getImageCanvas(data.Points);
+      var transform = new PerspectiveTransform(
+        solutionGrid, 
+        solutionGrid.clientWidth, 
+        solutionGrid.clientHeight, 
+        true);
 
-    for (var i = 0; i < 4; i++) {
-      var targetPoint = i === 0 ? transform.topLeft : i === 1 ? transform.topRight : i === 2 ? transform.bottomRight : transform.bottomLeft;
-      targetPoint.x = (data.Points[i].x / puzzleImg.naturalWidth) * solutionGrid.clientWidth;
-      targetPoint.y = (data.Points[i].y / puzzleImg.naturalHeight) * solutionGrid.clientHeight;
-    }
-    if (transform.checkError()==0){
-        transform.update();
+      for (var i = 0; i < 4; i++) {
+        var targetPoint = i === 0 ? transform.topLeft : i === 1 ? transform.topRight : i === 2 ? transform.bottomRight : transform.bottomLeft;
+        targetPoint.x = (data.Points[i].x / puzzleImg.naturalWidth) * solutionGrid.clientWidth;
+        targetPoint.y = (data.Points[i].y / puzzleImg.naturalHeight) * solutionGrid.clientHeight;
+      }
+      if (transform.checkError()==0){
+          transform.update();
+      }
     }
   }
 

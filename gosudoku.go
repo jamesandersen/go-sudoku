@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/jamesandersen/gosudoku/sudokuparser"
+	"github.com/nytimes/gziphandler"
 )
 
 // SudokuMode represents a variant of sudoku
@@ -364,7 +365,7 @@ func main() {
 
 	if mode == "serve" {
 		fs := http.FileServer(http.Dir("web/static"))
-		http.Handle("/static/", http.StripPrefix("/static/", fs))
+		http.Handle("/static/", gziphandler.GzipHandler(http.StripPrefix("/static/", fs)))
 		http.HandleFunc("/solve", solveHandler)
 		http.HandleFunc("/", sudokuFormHandler)
 		http.ListenAndServe(":8080", nil)
