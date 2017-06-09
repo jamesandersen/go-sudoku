@@ -30,7 +30,8 @@ import (
 
 // Point2d represents a point in 2d space
 type Point2d struct {
-	X, Y int
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 var svmModelPath string

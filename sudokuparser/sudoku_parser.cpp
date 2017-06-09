@@ -15,12 +15,18 @@ using namespace cv;
 
 const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
 
-const string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
+const string internalParseSudoku(const char * encImgData, int length, float * gridPoints, bool saveOutput) {
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
     Mat cleanedBoard;
-    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard);
+    vector<float> gPoints;
+    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints);
+    if (gPoints.size() == 8) {
+        //gridPoints = &gPoints[0];
+        copy(gPoints.begin(), gPoints.end(), gridPoints);
+    }
+
     map<string, int> digitMap;
 
     if (digits.size() > 0) {
@@ -172,7 +178,8 @@ string internalTrainSudoku(const char * trainConfigFile) {
             // read sample image and find digits
             auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
             Mat cleanedBoard;
-            auto digits = FindDigitRects(sudokuBoard, cleanedBoard);
+            vector<float> gridPoints; // not used for training
+            auto digits = FindDigitRects(sudokuBoard, cleanedBoard, gridPoints);
 
             // extract digit images with labels
             auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);

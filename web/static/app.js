@@ -2,16 +2,20 @@
 
   var sudokuFileInput;
   var dropZone;
-  var solutionRow;
+  var puzzleRow;
   var solutionGrid;
+  var puzzleImg;
+  var puzzleAnnotation;
 
   // Initialize handlers when DOM is loaded
   document.addEventListener("DOMContentLoaded", function() {
     // important DOM elements
     sudokuFileInput = document.getElementById("sudokuFile");
     dropZone = document.getElementById("dropZone");
-    solutionRow = document.getElementById("solution-row");
+    puzzleRow = document.getElementById("puzzle-row");
     solutionGrid = document.getElementById("solution-grid");
+    puzzleImg = document.getElementById('puzzle-src');
+    puzzleAnnotation = document.getElementById('puzzle-annotation');
 
     // Wire up file input change handler
     sudokuFileInput.addEventListener("change", function(evt) {
@@ -39,13 +43,14 @@
         if (dt.items[i].kind == "file") {
           var f = dt.items[i].getAsFile();
           sendFile(f);
-          console.log("... file[" + i + "].name = " + f.name);
+          console.log("Uploading  " + f.name + "...");
         }
       }
     } else {
       // Use DataTransfer interface to access the file(s)
       for (var i=0; i < dt.files.length; i++) {
-        console.log("... file[" + i + "].name = " + dt.files[i].name);
+          sendFile(f);
+          console.log("Uploading  " + f.name + "...");
       }  
     }
   }
@@ -57,7 +62,6 @@
   }
 
   function dragover_handler(ev) {
-    
     // Prevent default select and drag behavior
     ev.preventDefault();
   }
@@ -85,12 +89,15 @@
       var reader  = new FileReader();
 
       dropZone.className = '';
-      if (solutionRow.className.indexOf(" loading") < 0) {
-        solutionRow.className += " loading";
+      if (puzzleRow.className.indexOf(" loading") < 0) {
+        puzzleRow.className += " loading";
       }
 
+      // clear out solution, if any
+      while (solutionGrid.lastChild) { solutionGrid.removeChild(solutionGrid.lastChild); }
+
       reader.addEventListener("load", function () {
-        document.getElementById('puzzle-src').src = reader.result;
+        puzzleImg.src = reader.result;
       }, false);
       reader.readAsDataURL(file);
 
@@ -100,27 +107,12 @@
           if (xhr.readyState == 4) {
               var data = JSON.parse(xhr.responseText);
               if (xhr.status == 200) {
-
-                  // insert the solution in the DOM
-                  while (solutionGrid.lastChild) { solutionGrid.removeChild(solutionGrid.lastChild); }
-                  var i = 0;
-                  for (var cell in data.Values) {
-                    var val = data.Values[cell];
-                    var cellDiv = document.createElement("div");
-                    cellDiv.appendChild(document.createTextNode(val.value));
-                    cellDiv.className = "solution-cell";
-                    solutionGrid.appendChild(cellDiv);
-                    
-                    //if (i < 9) { cellDiv.className += " top"; }
-
-                    i++;
-                  }
-
+                setSolution(data);
               } else {
                   document.getElementById("solution").value = data.Error;
               }
 
-              solutionRow.className = solutionRow.className.replace(" loading", "");
+              puzzleRow.className = puzzleRow.className.replace(" loading", "");
           }
       };
       fd.append('sudokuFile', file);
@@ -128,13 +120,53 @@
       xhr.send(fd);
   }
 
+  function setSolution(data) {
+    // insert the solution in the DOM
+    var i = 0;
+    for (var cell in data.Values) {
+      var val = data.Values[cell];
+      var cellDiv = document.createElement("div");
+      if (val.source === 1) {
+        cellDiv.appendChild(document.createTextNode(val.value));
+      }
+      cellDiv.className = "solution-cell";
+      if (val.source === 0) { cellDiv.className += " parsed"; }
+      solutionGrid.appendChild(cellDiv);
+      
+      //if (i < 9) { cellDiv.className += " top"; }
+
+      i++;
+    }
+
+    puzzleAnnotation.src = getImageCanvas(data.Points);
+    var transform = new PerspectiveTransform(
+      solutionGrid, 
+      solutionGrid.clientWidth, 
+      solutionGrid.clientHeight, 
+      true);
+
+    for (var i = 0; i < 4; i++) {
+      var targetPoint = i === 0 ? transform.topLeft : i === 1 ? transform.topRight : i === 2 ? transform.bottomRight : transform.bottomLeft;
+      targetPoint.x = (data.Points[i].x / puzzleImg.naturalWidth) * solutionGrid.clientWidth;
+      targetPoint.y = (data.Points[i].y / puzzleImg.naturalHeight) * solutionGrid.clientHeight;
+    }
+    if (transform.checkError()==0){
+        transform.update();
+    }
+  }
+
+  function getImageCanvas(puzzleCorners) {
+    var canvas = document.createElement("canvas");
+    canvas.width = puzzleImg.naturalWidth;
+    canvas.height = puzzleImg.naturalHeight;
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FF0000";
+    for(var i = 0; i < puzzleCorners.length; i++) {
+      ctx.beginPath();
+      ctx.arc(puzzleCorners[i].x, puzzleCorners[i].y, 10, 0, Math.PI * 2, true); // Outer circle
+      ctx.fill();
+    }
+    return canvas.toDataURL();
+  }
 
 }())
-
-
-
-var isAdvancedUpload = function() {
-    var div = document.createElement('div');
-    return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
-}();
-
