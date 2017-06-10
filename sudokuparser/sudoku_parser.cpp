@@ -21,7 +21,8 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
     Mat cleanedBoard;
     vector<float> gPoints;
-    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints);
+    float scale = 1.0;
+    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints, scale);
 
 
     map<string, int> digitMap;
@@ -31,14 +32,14 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
         Rect allDigits = digits[0];
         for( size_t i = 0; i< digits.size(); i++ ) { allDigits |= digits[i]; }
         if (gPoints.size() == 0) {
-            gridPoints[0] = allDigits.x;
-            gridPoints[1] = allDigits.y;
-            gridPoints[2] = allDigits.x + allDigits.width;
-            gridPoints[3] = allDigits.y;
-            gridPoints[4] = allDigits.br().x;
-            gridPoints[5] = allDigits.br().y;
-            gridPoints[6] = allDigits.x;
-            gridPoints[7] = allDigits.y + allDigits.height;
+            gridPoints[0] = allDigits.x * scale;
+            gridPoints[1] = allDigits.y * scale;
+            gridPoints[2] = (allDigits.x + allDigits.width) * scale;
+            gridPoints[3] = allDigits.y * scale;
+            gridPoints[4] = allDigits.br().x * scale;
+            gridPoints[5] = allDigits.br().y * scale;
+            gridPoints[6] = allDigits.x * scale;
+            gridPoints[7] = (allDigits.y + allDigits.height) * scale;
         }
 
         double cellWidth = allDigits.width / 9.0;
@@ -191,7 +192,8 @@ string internalTrainSudoku(const char * trainConfigFile) {
             auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
             Mat cleanedBoard;
             vector<float> gridPoints; // not used for training
-            auto digits = FindDigitRects(sudokuBoard, cleanedBoard, gridPoints);
+            float scale = 1.0;
+            auto digits = FindDigitRects(sudokuBoard, cleanedBoard, gridPoints, scale);
 
             // extract digit images with labels
             auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);

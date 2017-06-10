@@ -326,7 +326,7 @@ namespace Sudoku {
     /**
     * Detect Sudoku board and digits in the "raw" Mat
     */
-    vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned, vector<float>& gridPoints) {
+    vector<Rect> FindDigitRects(const Mat& raw, Mat& cleaned, vector<float>& gridPoints, float &scale) {
         // Check if image is loaded fine
         if(!raw.data)
             cerr << "Problem loading image!!!" << endl;
@@ -334,7 +334,6 @@ namespace Sudoku {
         Mat src;
         raw.copyTo(src);
 
-        //imshow("src: " + filename, src);
         // Transform source image to gray if it is not
         Mat gray;
         if (src.channels() == 3)
@@ -351,8 +350,10 @@ namespace Sudoku {
 
         // make sure image is a reasonable size
         if(grid.rows > MAX_PUZZLE_SIZE || grid.cols > MAX_PUZZLE_SIZE) {
+            scale = 2.0;
             resize(grid, grid, Size(grid.cols / 2, grid.rows / 2), 0, 0, CV_INTER_AREA);
         } else if (grid.rows < MIN_PUZZLE_SIZE || grid.cols < MIN_PUZZLE_SIZE) {
+            scale = 0.5;
             resize(grid, grid, Size(grid.cols * 2, grid.rows * 2), 0, 0, CV_INTER_CUBIC);
         }
         
