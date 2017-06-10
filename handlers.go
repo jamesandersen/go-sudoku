@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -94,8 +93,15 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("File name %s\n", header.Filename)
 	for key, value := range header.Header {
 		for _, val := range value {
-			if strings.ToLower(key) == "content-type" && strings.ToLower(val) == "image/gif" {
-				isGif = true
+			if strings.ToLower(key) == "content-type" {
+				if strings.ToLower(val) == "image/gif" {
+					isGif = true
+				} else if !(strings.ToLower(val) == "image/png" ||
+					strings.ToLower(val) == "image/jpg" ||
+					strings.ToLower(val) == "image/jpeg") {
+					err := fmt.Sprintf("Invalid image format %s; only gif, png and jpg supported", val)
+					p = &page{Title: "Invalid Image", Success: false, Error: err}
+				}
 			}
 		}
 	}
@@ -116,36 +122,29 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 		bytes = Buf.Bytes()
 	}
 
-	parsed, points := sudokuparser.ParseSudokuFromByteArray(bytes)
+	if p == nil {
+		parsed, points := sudokuparser.ParseSudokuFromByteArray(bytes)
 
-	fmt.Println("Parsed sudoku: " + parsed)
+		fmt.Println("Parsed sudoku: " + parsed)
 
-	board := NewSudoku(parsed, STANDARD)
-	fmt.Print("Attempting to solve Sudoku...\n")
-	board.Print()
-	finalBoard, success := board.Solve()
+		board := NewSudoku(parsed, STANDARD)
+		fmt.Print("Attempting to solve Sudoku...\n")
+		board.Print()
+		finalBoard, success := board.Solve()
 
-	if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 		if success {
 			p = &page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Values: finalBoard.values, Points: points, Error: ""}
 		} else {
 			p = &page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
 		}
-		js, err := json.Marshal(p)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(js)
-	} else {
-		imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
-		if success {
-			p = &page{Title: "Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: true}
-		} else {
-			p = &page{Title: "Not Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: false}
-		}
-		t.Execute(w, p)
 	}
+
+	js, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

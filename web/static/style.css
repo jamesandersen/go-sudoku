@@ -376,7 +376,7 @@ img.github {
   transform: translateZ(0);
   -webkit-animation-delay: -0.16s;
   animation-delay: -0.16s;
-  background-color: gray;
+  /* background-color: gray; */
   top: 40%;
   left: 50%;
   margin: 0 auto;
