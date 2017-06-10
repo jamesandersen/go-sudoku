@@ -1,13 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"strings"
+
+	"image/gif"
+	"image/png"
 
 	"github.com/jamesandersen/gosudoku/sudokuparser"
 )
@@ -36,8 +42,31 @@ func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func gifToPng(file multipart.File) ([]byte, error) {
+	img, err := gif.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+	err = png.Encode(writer, img)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Encoded %v byte PNG image\n", b.Len())
+	return b.Bytes(), nil
+}
+
 func solveHandler(w http.ResponseWriter, r *http.Request) {
 	var p *page
+	isGif := false
 	t, _ := template.ParseFiles("web/sudoku.html")
 
 	defer func() {
@@ -61,15 +90,32 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 
 	var Buf bytes.Buffer
 	file, header, err := r.FormFile("sudokuFile")
-	if err != nil {
-		panic(err)
-	}
 	defer file.Close()
 	fmt.Printf("File name %s\n", header.Filename)
-	// Copy the file data to my buffer
-	io.Copy(&Buf, file)
+	for key, value := range header.Header {
+		for _, val := range value {
+			if strings.ToLower(key) == "content-type" && strings.ToLower(val) == "image/gif" {
+				isGif = true
+			}
+		}
+	}
 
-	bytes := Buf.Bytes()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	var bytes []byte
+	if isGif {
+		fmt.Print("Gif image detected, converting to PNG\n")
+		bytes, err = gifToPng(file)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		// Copy the file data to my buffer
+		io.Copy(&Buf, file)
+		bytes = Buf.Bytes()
+	}
+
 	parsed, points := sudokuparser.ParseSudokuFromByteArray(bytes)
 
 	fmt.Println("Parsed sudoku: " + parsed)

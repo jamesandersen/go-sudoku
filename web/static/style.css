@@ -20,7 +20,11 @@ h1, h2, h3 {
 
 .flex-row { display: flex;}
 
-.header {
+.header h1, #ack {
+    text-shadow: rgba(141, 139, 158, 0.78) 1px 1px;
+}
+
+.header{
     height: 50px;
     flex: 0 50px;
     background: #89bdd3;
@@ -35,36 +39,38 @@ h1, h2, h3 {
 }
 
 .flex-row.puzzle {
-    flex: 0 0 70%;
+    flex: 0 0 55vmin;
     padding: 1rem;
     position: relative;
-    max-height: 70vmin;
+    max-height: 60vmin;
 }
 
 .acknowledgements {
-    padding: 1rem 2rem;
+    padding: 0.5rem 1rem;
     font-size: 10pt;
     position: absolute;
     z-index: 109;
     top: 100%;
     transition: all 0.7s;
-    background: #89bdd3;
-    margin: -4rem auto 0 auto;
-    min-height: 75vh;
+    background: #ffffff;
+    margin: -3.3rem auto 0 auto;
+    /* min-height: 75vh; */
     right: 10vw;
     left: 10vw;
     border-radius: 10px 10px 0 0;
+    border: 2px solid gray;
+    box-shadow: 0px 2px 16px darkgrey;
 }
 
 .acknowledgements.up {
-    top: 30%;
+    top: 58%;
 }
 
 .acknowledgements .arrow {
     transform-origin: 50% 50%;
     transition: transform 0.7s;
     display: inline-block;
-    color: white;
+    color: gray;
     text-shadow: rgba(0, 0, 0, 0.44) 2px 2px;
 }
 
@@ -80,14 +86,13 @@ h1, h2, h3 {
   left: 0%;
   right:  0%;
   padding: 1rem;
-  max-width: 600px;
+  max-width: 55vmin;
   margin: 0 auto;
   z-index: 100;
-  /* width: 100%; */
 }
 
 #dropZone {
-    background-color: rgba(141, 139, 158, 0.78);
+    background-color: rgba(137, 189, 211, 0.88);
     width: 100%;
     height: 100%;
     opacity: 0;
@@ -95,7 +100,7 @@ h1, h2, h3 {
     text-align: center;
     font-size: 12pt;
     padding: 1rem;
-    border: lightgray 4px dashed;
+    border: #2196F3 4px dashed;
     border-radius: 6px;
     box-sizing: border-box;
     display: flex;
@@ -129,8 +134,6 @@ h1, h2, h3 {
 }
 
 #sudoku-file-container div {
-    /* margin-top: 30%; */
-    /* margin-bottom: 1rem; */
     padding: 0.5rem;
     transition: all 0.5s;
     background-color: #4d90fe;
@@ -176,12 +179,11 @@ h1, h2, h3 {
 }
 
 #puzzle-container {
-    /* width: 100%; */
     height: 100%;
     border: 0;
     position: relative;
     margin: 0 auto;
-    /* max-width: 70vw; */
+    max-width: 55vmin;
 }
 
 #puzzle-container img, #solution-grid {
@@ -234,9 +236,11 @@ h1, h2, h3 {
 .solution-cell.bottom { border-bottom-width: 2px; }
 
 .flex-row.samples {
-    flex: 1 20vh;
+    flex: 1 25vmin;
     display: flex;
     justify-content: space-around;
+    align-items: center;
+    margin-bottom: 4px;
 }
 
 .sample {
@@ -255,28 +259,54 @@ h1, h2, h3 {
     margin-bottom: 0.8rem;
     margin-top: 0.2rem;
     line-height: 2rem;
-    font-size: 2rem;
+    font-size: 1.4rem;
     cursor: pointer;
+    color: gray;
+    text-align: center;
 }
 
 .acknowledgements ul {
-    margin-top: 0rem;
-    padding-left: 0;
+    display: flex;
+    overflow-y: scroll;
+    position: relative;
+    box-shadow: inset 3px 5px 6px #fff;
 }
 
 .acknowledgements li {
     list-style: none;
-    margin-bottom: 0.3rem;
+    margin: 0.5rem;
+    /* padding: 1rem; */
+    width: 70vw;
 }
 
 .acknowledgements li a, .acknowledgements li a:visited {
     font-weight: bold;
     text-decoration: none;
-    color: blue;
+    color: black;
 }
 
 .acknowledgements li a:hover {
     text-decoration: underline;
+}
+
+.acknowledgements li a.logo {
+    display: block;
+    width: 45vmin;
+    height: 30vmin;
+    text-align: center;
+}
+
+.acknowledgements li a.logo img {
+    width: 25vmin;
+    height: 20vmin;
+    object-fit: contain;
+}
+.acknowledgements li a.logo .title {
+    line-height: 30px;
+    font-size: 1.1rem;
+}
+.acknowledgements li .desc {
+    text-align: center;
 }
 
 .error {
@@ -384,3 +414,4 @@ img.github {
   40% {
     box-shadow: 0 2.5em 0 0;
   }
+}
