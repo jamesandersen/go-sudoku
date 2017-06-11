@@ -83,7 +83,7 @@ func dataModel4Yml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "data/model4.yml", size: 205283, mode: os.FileMode(420), modTime: time.Unix(1496861298, 0)}
+	info := bindataFileInfo{name: "data/model4.yml", size: 205283, mode: os.FileMode(420), modTime: time.Unix(1496864177, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

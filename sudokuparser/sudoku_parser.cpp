@@ -76,7 +76,9 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
         }
         
         rectangle( digitBounds, allDigits, teal, 1, 8, 0 );
-        imwrite("detected.png", digitBounds);
+        #ifdef VERBOSE
+        imwrite("artifact_07_detected.png", digitBounds);
+        #endif
     }
 
     string puzzle = "";

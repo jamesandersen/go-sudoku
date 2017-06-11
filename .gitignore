@@ -30,3 +30,4 @@ sudokuparser/sudokuparser
 sudokuparser.dSYM
 testdigit.png
 detected.png
+artifact_*.png
