@@ -13,7 +13,7 @@ RNG rng(12345);
 using LineTestFn = function<bool(Rect&, Mat&)>;
 using ExpandRectFn = function<Rect(Rect&, Mat&)>;
 
-#define VERBOSE
+//#define VERBOSE
 
 namespace Sudoku {
 
@@ -83,7 +83,7 @@ namespace Sudoku {
     /**
     * Attempt to extract and warp sudoku grid
     */
-    void extractGrid(const Mat& img, Mat& dst, vector<float>& gridPoints) {
+    void extractGrid(const Mat& img, Mat& dst, vector<float>& gridPoints, float& scale) {
         Mat src_gray;
         blur( img, src_gray, Size(3,3) );
         Mat canny_output;
@@ -101,11 +101,11 @@ namespace Sudoku {
         adaptiveThreshold(~denoised, src_gray, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 11, -2);
         #ifdef VERBOSE
         //imshow("denoised", src_gray);
-        imwrite("denoised.png", src_gray);
+        imwrite("artifact_01_denoised.png", src_gray);
         #endif
         Canny( src_gray, canny_output, CANNY_THRESHOLD, CANNY_THRESHOLD * 2, 3 );
         #ifdef VERBOSE
-        imwrite("canny.png", canny_output);
+        imwrite("artifact_02_canny.png", canny_output);
         #endif
         findContours( canny_output, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE, Point(0, 0) );
         Mat drawing = Mat::zeros( canny_output.size(), CV_8UC3 );
@@ -128,7 +128,7 @@ namespace Sudoku {
 
         #ifdef VERBOSE
         cout << contours.size() << " canny contours found." << endl;
-        imwrite("contours.png", drawing);
+        imwrite("artifact_03_contours.png", drawing);
         cout << "largest contour index: " << largest_contour_index << endl;
         cout << "largest contour area: " << largest_area << endl;
         #endif
@@ -149,8 +149,8 @@ namespace Sudoku {
             
             // draw contour quadrangle
             for( int j = 0; j < 4; j++ ) {
-                gridPoints.push_back(corners[j].x);
-                gridPoints.push_back(corners[j].y);
+                gridPoints.push_back(corners[j].x * scale);
+                gridPoints.push_back(corners[j].y * scale);
                 #ifdef VERBOSE
                 line( drawing, corners[j], corners[(j+1)%4], Scalar(0,0,255), 2, 8 );
                 #endif
@@ -161,7 +161,7 @@ namespace Sudoku {
             for( int j = 0; j < lenContour; j++ ) {
                 line( drawing, largestContour[j], largestContour[(j+1)%lenContour], Scalar(0,0,255), 2, 8 );
             }
-            imwrite("quadrangle.png", drawing);
+            imwrite("artifact_04_quadrangle.png", drawing);
             #endif
             flatCorners[0] = Point2f(0, 0);
             flatCorners[1] = Point2f(sz.width, 0);
@@ -176,7 +176,7 @@ namespace Sudoku {
             addWeighted(output, 1.5, dst, -0.5, 0, dst);
             #ifdef VERBOSE
             //imshow("Warped", dst);
-            imwrite("warped.png", dst);
+            imwrite("artifact_05_warped.png", dst);
             #endif
         } else {
             throw runtime_error("No grid contour found");
@@ -344,18 +344,18 @@ namespace Sudoku {
         {
             gray = src;
         }
+        
+        // make sure image is a reasonable size
+        if(gray.rows > MAX_PUZZLE_SIZE || gray.cols > MAX_PUZZLE_SIZE) {
+            scale = max(gray.rows, gray.cols) / float(MAX_PUZZLE_SIZE);
+            resize(gray, gray, Size(gray.cols / scale, gray.rows / scale), 0, 0, CV_INTER_AREA);
+        } else if (gray.rows < MIN_PUZZLE_SIZE || gray.cols < MIN_PUZZLE_SIZE) {
+            scale = min(gray.rows, gray.cols) / float(MAX_PUZZLE_SIZE);
+            resize(gray, gray, Size(gray.cols / scale, gray.rows / scale), 0, 0, CV_INTER_CUBIC);
+        }
 
         Mat grid = Mat::zeros( gray.size(), gray.type() );
-        extractGrid(gray, grid, gridPoints);
-
-        // make sure image is a reasonable size
-        if(grid.rows > MAX_PUZZLE_SIZE || grid.cols > MAX_PUZZLE_SIZE) {
-            scale = 2.0;
-            resize(grid, grid, Size(grid.cols / 2, grid.rows / 2), 0, 0, CV_INTER_AREA);
-        } else if (grid.rows < MIN_PUZZLE_SIZE || grid.cols < MIN_PUZZLE_SIZE) {
-            scale = 0.5;
-            resize(grid, grid, Size(grid.cols * 2, grid.rows * 2), 0, 0, CV_INTER_CUBIC);
-        }
+        extractGrid(gray, grid, gridPoints, scale);
         
         // Apply adaptiveThreshold at the bitwise_not of gray, notice the ~ symbol
         Mat bw;
@@ -378,7 +378,7 @@ namespace Sudoku {
         clean.copyTo(cleaned);
 
         #ifdef VERBOSE
-        imwrite("cleaned.png", clean);
+        imwrite("artifact_06_cleaned.png", clean);
         //imshow("cleaned", clean);
         #endif
         return digits;

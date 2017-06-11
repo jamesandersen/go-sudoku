@@ -184,6 +184,7 @@ h1, h2, h3 {
     position: relative;
     margin: 0 auto;
     max-width: 55vmin;
+    width: 100%;
 }
 
 #puzzle-container img, #solution-grid {
