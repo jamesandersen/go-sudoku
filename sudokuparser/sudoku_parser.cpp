@@ -19,6 +19,11 @@ const string internalParseSudoku(const char * encImgData, int length, float * gr
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
+    cout << "channels: " << sudokuBoard.channels() << " type: " << sudokuBoard.type() << endl;
+    if (sudokuBoard.type() == 2) {
+        sudokuBoard.convertTo(sudokuBoard, CV_8U, 0.00390625);
+    }
+    
     Mat cleanedBoard;
     vector<float> gPoints;
     float scale = 1.0;
