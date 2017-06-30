@@ -1,34 +1,39 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"image/gif"
+	"image/png"
 
 	"github.com/jamesandersen/gosudoku/sudokuparser"
 )
 
-type Page struct {
+type page struct {
 	Title   string
 	Image   template.URL
 	Success bool
 	Body    string
+	Values  map[string]CellValue
+	Points  []sudokuparser.Point2d
 	Error   string
 }
 
 func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		p := &Page{Title: "TestPage", Body: "This is a sample Page."}
+		p := &page{Title: "TestPage", Body: "--Solution goes here--."}
 		t, _ := template.ParseFiles("web/sudoku.html")
 		t.Execute(w, p)
 	case "POST":
-		// Create a new record.
 		solveHandler(w, r)
 	default:
 		// Give an error message.
@@ -36,14 +41,37 @@ func sudokuFormHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func gifToPng(file multipart.File) ([]byte, error) {
+	img, err := gif.Decode(file)
+	if err != nil {
+		return nil, err
+	}
+
+	var b bytes.Buffer
+	writer := bufio.NewWriter(&b)
+	err = png.Encode(writer, img)
+	if err != nil {
+		return nil, err
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Encoded %v byte PNG image\n", b.Len())
+	return b.Bytes(), nil
+}
+
 func solveHandler(w http.ResponseWriter, r *http.Request) {
-	var p *Page
+	var p *page
+	isGif := false
 	t, _ := template.ParseFiles("web/sudoku.html")
 
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("Recovering from panic in solveHandler...", err)
-			p = &Page{Title: "Error", Error: fmt.Sprintf("%v", err), Success: false}
+			p = &page{Title: "Error", Error: fmt.Sprintf("%v", err), Success: false}
 			if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
 				js, jerr := json.Marshal(p)
 				if jerr != nil {
@@ -56,57 +84,67 @@ func solveHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				t.Execute(w, p)
 			}
-
 		}
 	}()
 
 	var Buf bytes.Buffer
-	// in your case file would be fileupload
 	file, header, err := r.FormFile("sudokuFile")
-	if err != nil {
-		panic(err)
-	}
 	defer file.Close()
-	name := strings.Split(header.Filename, ".")
-	fmt.Printf("File name %s\n", name[0])
-	// Copy the file data to my buffer
-	io.Copy(&Buf, file)
-
-	bytes := Buf.Bytes()
-	parsed := sudokuparser.ParseSudokuFromByteArray(bytes)
-
-	fmt.Println("Parsed sudoku: " + parsed)
-
-	board := NewSudoku(parsed, STANDARD)
-	fmt.Print("Attempting to solve Sudoku...\n")
-	board.Print()
-	finalBoard, success := board.Solve()
-
-	// I reset the buffer in case I want to use it again
-	// reduces memory allocations in more intense projects
-	Buf.Reset()
-
-	if r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
-		if success {
-			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Error: ""}
-		} else {
-			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
+	fmt.Printf("File name %s\n", header.Filename)
+	for key, value := range header.Header {
+		for _, val := range value {
+			if strings.ToLower(key) == "content-type" {
+				if strings.ToLower(val) == "image/gif" {
+					isGif = true
+				} else if !(strings.ToLower(val) == "image/png" ||
+					strings.ToLower(val) == "image/jpg" ||
+					strings.ToLower(val) == "image/jpeg") {
+					err := fmt.Sprintf("Invalid image format %s; only gif, png and jpg supported", val)
+					p = &page{Title: "Invalid Image", Success: false, Error: err}
+				}
+			}
 		}
-		js, err := json.Marshal(p)
+	}
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	var bytes []byte
+	if isGif {
+		fmt.Print("Gif image detected, converting to PNG\n")
+		bytes, err = gifToPng(file)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(js)
 	} else {
-		imgDataURL := "data:image/png;base64," + base64.StdEncoding.EncodeToString(bytes)
-		if success {
-			p = &Page{Title: "Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: true}
-		} else {
-			p = &Page{Title: "Not Solved", Body: finalBoard.ToString(), Image: template.URL(imgDataURL), Success: false}
-		}
-		t.Execute(w, p)
+		// Copy the file data to my buffer
+		io.Copy(&Buf, file)
+		bytes = Buf.Bytes()
 	}
+
+	if p == nil {
+		parsed, points := sudokuparser.ParseSudokuFromByteArray(bytes)
+
+		fmt.Println("Parsed sudoku: " + parsed)
+
+		board := NewSudoku(parsed, STANDARD)
+		fmt.Print("Attempting to solve Sudoku...\n")
+		board.Print()
+		finalBoard, success := board.Solve()
+
+		if success {
+			p = &page{Title: "Solved", Body: finalBoard.ToString(), Success: true, Values: finalBoard.values, Points: points, Error: ""}
+		} else {
+			p = &page{Title: "Not Solved", Body: finalBoard.ToString(), Success: false, Error: ""}
+		}
+	}
+
+	js, err := json.Marshal(p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }

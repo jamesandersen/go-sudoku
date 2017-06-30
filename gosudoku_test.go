@@ -108,7 +108,7 @@ func TestDeepCopy(t *testing.T) {
 		board := NewSudoku(simple, STANDARD)
 
 		board2 := board.Copy()
-		board2.values["A1"] = "4"
+		board2.values["A1"] = CellValue{Value: "4", Source: RESOLVED}
 		if board.values["A1"] == board2.values["A1"] {
 			t.Error("Board is not deep copied")
 		}

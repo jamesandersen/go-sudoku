@@ -15,18 +15,37 @@ using namespace cv;
 
 const char *SVM_MODEL_ENV_VAR_NAME = "GO_SUDOKU_SVM_MODEL";
 
-const string internalParseSudoku(const char * encImgData, int length, bool saveOutput) {
+const string internalParseSudoku(const char * encImgData, int length, float * gridPoints, bool saveOutput) {
     std::vector<char> encodedImageData(encImgData, encImgData + length);
 
     Mat sudokuBoard = imdecode(encodedImageData, CV_LOAD_IMAGE_ANYDEPTH);
+    cout << "channels: " << sudokuBoard.channels() << " type: " << sudokuBoard.type() << endl;
+    if (sudokuBoard.type() == 2) {
+        sudokuBoard.convertTo(sudokuBoard, CV_8U, 0.00390625);
+    }
+    
     Mat cleanedBoard;
-    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard);
+    vector<float> gPoints;
+    float scale = 1.0;
+    vector<Rect> digits = FindDigitRects(sudokuBoard, cleanedBoard, gPoints, scale);
+
+
     map<string, int> digitMap;
 
     if (digits.size() > 0) {
         // get the bounding box of all digits
         Rect allDigits = digits[0];
         for( size_t i = 0; i< digits.size(); i++ ) { allDigits |= digits[i]; }
+        if (gPoints.size() == 0) {
+            gridPoints[0] = allDigits.x * scale;
+            gridPoints[1] = allDigits.y * scale;
+            gridPoints[2] = (allDigits.x + allDigits.width) * scale;
+            gridPoints[3] = allDigits.y * scale;
+            gridPoints[4] = allDigits.br().x * scale;
+            gridPoints[5] = allDigits.br().y * scale;
+            gridPoints[6] = allDigits.x * scale;
+            gridPoints[7] = (allDigits.y + allDigits.height) * scale;
+        }
 
         double cellWidth = allDigits.width / 9.0;
         double cellHeight = allDigits.height / 9.0;
@@ -62,7 +81,9 @@ const string internalParseSudoku(const char * encImgData, int length, bool saveO
         }
         
         rectangle( digitBounds, allDigits, teal, 1, 8, 0 );
-        imwrite("detected.png", digitBounds);
+        #ifdef VERBOSE
+        imwrite("artifact_07_detected.png", digitBounds);
+        #endif
     }
 
     string puzzle = "";
@@ -80,6 +101,11 @@ const string internalParseSudoku(const char * encImgData, int length, bool saveO
     }
     
     cout << length << " byte puzzle parsed as " << puzzle << endl;
+
+    // set the grid corners
+    if (gPoints.size() == 8) {
+        copy(gPoints.begin(), gPoints.end(), gridPoints);
+    }
 
     return puzzle;
 }
@@ -124,40 +150,43 @@ map<int, vector<Mat> > labelDigits(Mat &clean, vector<Rect> digits, string label
         throw runtime_error("Invalid label string!");
     }
 
-    Rect allDigits = digits[0];
-    for( size_t i = 0; i < digits.size(); i++ ) { allDigits |= digits[i]; }
+    if (digits.size() > 0) {
+        Rect allDigits = digits[0];
+        for( size_t i = 0; i < digits.size(); i++ ) { allDigits |= digits[i]; }
 
-    double cellWidth = allDigits.width / 9.0;
-    double cellHeight = allDigits.height / 9.0;
+        double cellWidth = allDigits.width / 9.0;
+        double cellHeight = allDigits.height / 9.0;
 
-    for( size_t i = 0; i< digits.size(); i++ )
-    {
-        Point center = (digits[i].br() + digits[i].tl())*0.5;
-        int row = int(floor((center.y - allDigits.y) / cellHeight));
-        int col = int(floor((center.x - allDigits.x) / cellWidth));
+        for( size_t i = 0; i< digits.size(); i++ )
+        {
+            Point center = (digits[i].br() + digits[i].tl())*0.5;
+            int row = int(floor((center.y - allDigits.y) / cellHeight));
+            int col = int(floor((center.x - allDigits.x) / cellWidth));
 
-        string labelStr = labels.substr((row * 9) + col, 1);
-        if (labelStr != ".") {
-            int label = atoi(labelStr.c_str());
+            string labelStr = labels.substr((row * 9) + col, 1);
+            if (labelStr != ".") {
+                int label = atoi(labelStr.c_str());
 
-            // Extract the digit
-            Mat digit = Mat(clean, digits[i]);
-            resize(digit, digit, Size(EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE), 0, 0, CV_INTER_AREA);
-            // despeckle
-            fastNlMeansDenoising(digit, digit, 50.0, 5, clean.cols / 10);
+                // Extract the digit
+                Mat digit = Mat(clean, digits[i]);
+                resize(digit, digit, Size(EXPORT_DIGIT_SIZE, EXPORT_DIGIT_SIZE), 0, 0, CV_INTER_AREA);
+                // despeckle
+                fastNlMeansDenoising(digit, digit, 50.0, 5, clean.cols / 10);
 
-            labeled[label].push_back(digit);
+                labeled[label].push_back(digit);
+            }
+
+            // draw random colored rect
+            //Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+            //rectangle( digitBounds, digits[i], color, 1, 8, 0 );
+
+
+            //replace(filename, "samples/", "");
+            //string outFile = "digits/" + string(1, rowChar) + to_string(col) + "_" + filename;
+            //imwrite( outFile, digit );
         }
-
-        // draw random colored rect
-        //Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        //rectangle( digitBounds, digits[i], color, 1, 8, 0 );
-
-
-        //replace(filename, "samples/", "");
-        //string outFile = "digits/" + string(1, rowChar) + to_string(col) + "_" + filename;
-        //imwrite( outFile, digit );
     }
+    
 
     return labeled;
 }
@@ -172,7 +201,9 @@ string internalTrainSudoku(const char * trainConfigFile) {
             // read sample image and find digits
             auto sudokuBoard = imread(element.first, CV_LOAD_IMAGE_ANYDEPTH);
             Mat cleanedBoard;
-            auto digits = FindDigitRects(sudokuBoard, cleanedBoard);
+            vector<float> gridPoints; // not used for training
+            float scale = 1.0;
+            auto digits = FindDigitRects(sudokuBoard, cleanedBoard, gridPoints, scale);
 
             // extract digit images with labels
             auto labeledDigits = labelDigits(cleanedBoard, digits, element.second);

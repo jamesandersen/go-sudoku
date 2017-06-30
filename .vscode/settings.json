@@ -39,6 +39,7 @@
         "string_view": "cpp",
         "algorithm": "cpp",
         "fstream": "cpp",
-        "__tuple": "cpp"
+        "__tuple": "cpp",
+        "complex": "cpp"
     }
 }

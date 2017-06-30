@@ -7,7 +7,7 @@ using namespace std;
 
 extern const char *SVM_MODEL_ENV_VAR_NAME;
 
-const string internalParseSudoku(const char * encodedImageData, int length, bool saveOutput);
+const string internalParseSudoku(const char * encodedImageData, int length, float * gridPoints, bool saveOutput);
 
 string internalTrainSudoku(const char * trainConfigFile);
 

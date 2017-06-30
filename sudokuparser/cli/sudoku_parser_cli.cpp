@@ -43,11 +43,16 @@ int main(int argc, char *argv[])
                 is.close();
 
                 if (fileReadSuccessfully) {
-                    string parsed = internalParseSudoku(buffer, length, true);
+                    float * gridPoints;
+                    string parsed = internalParseSudoku(buffer, length, gridPoints, true);
                     cout << parsed << endl;
                 }
 
                 delete[] buffer;
+
+                if (string(argv[3]) == "wait") {
+                    cv::waitKey(0);
+                }
           }
       }
 
