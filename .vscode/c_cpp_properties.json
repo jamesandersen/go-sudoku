@@ -25,7 +25,8 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "clang-x64"
         },
         {
             "name": "Linux",
@@ -42,7 +43,8 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "clang-x64"
         },
         {
             "name": "Win32",
@@ -60,7 +62,8 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "intelliSenseMode": "msvc-x64"
         }
     ]
 }
